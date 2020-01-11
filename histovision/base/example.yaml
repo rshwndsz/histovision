@@ -1,0 +1,25 @@
+architecture:
+    model:
+        name: unet
+        num_classes: 2
+        weights: [1, 1]
+        pretrained: imagenet
+    criterion:
+        name: cross_entropy
+        weights: [1, 1]
+    optimizer:
+        name: adam
+
+hyperparameters:
+    batch_size: 32
+    lr:
+        scheduler: reduce_lr_on_plateau
+        values: {10: 0.001, 50: 0.0001, 75: 0.00001}
+
+train:
+    num_epochs: 100
+    num_workers: 4
+    val_freq: 4
+    device: cuda
+    checkpoint: checkpoints/
+    data: datasets/
