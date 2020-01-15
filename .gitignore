@@ -133,8 +133,10 @@ dmypy.json
 .DS_Store
 
 # Dataset
-dataset/*
-!dataset/api.py
+*/datasets/
+!datasets/api.py
+!datasets/clean.py
+!datasets/README.md
 
 # IDEs
 .vscode/
