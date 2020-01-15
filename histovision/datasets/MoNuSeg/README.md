@@ -9,20 +9,20 @@ Dataset: https://monuseg.grand-challenge.org/Data/
 Move the training data into `histovision/datasets/MoNuSeg/MoNuSegTrainData`  
 Move the test data into `histovision/datasets/MoNuSeg/MoNuSegTestData`
 
-Final structure looks something like this:
-.
-└── MoNuSeg
-   ├── MoNuSegTestData
-   │  ├── TCGA-2Z-A9J9-01A-01-TS1.tif
-   │  ├── TCGA-2Z-A9J9-01A-01-TS1.xml
-   │  ├── TCGA-44-2665-01B-06-BS6.tif
-   │  ├── TCGA-44-2665-01B-06-BS6.xml
-   │  ├── TCGA-69-7764-01A-01-TS1.tif
-   │  ├── . 
-   │  ├── .
-   │  └── .
-   ├── MoNuSegTrainData
-   │  ├── Annotations
-   │  └── Tissue Images
-   └── README.md
+Final structure looks something like this:  
+.  
+└── MoNuSeg  
+   ├── MoNuSegTestData  
+   │  ├── TCGA-2Z-A9J9-01A-01-TS1.tif  
+   │  ├── TCGA-2Z-A9J9-01A-01-TS1.xml  
+   │  ├── TCGA-44-2665-01B-06-BS6.tif  
+   │  ├── TCGA-44-2665-01B-06-BS6.xml  
+   │  ├── TCGA-69-7764-01A-01-TS1.tif  
+   │  ├── .   
+   │  ├── .  
+   │  └── .  
+   ├── MoNuSegTrainData  
+   │  ├── Annotations  
+   │  └── Tissue Images  
+   └── README.md  
 
