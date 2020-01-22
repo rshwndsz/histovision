@@ -1,14 +1,14 @@
 # Imports
-## Python STL
+# Python STL
 import os
 import logging
 from typing import Dict, Tuple
-## PyTorch
+# PyTorch
 import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
-## Local
+# Local
 from .loss import MixedLoss
 from .data import provider
 from .data import DATA_FOLDER
@@ -68,7 +68,7 @@ class Trainer(object):
         ----------
         model : torch.nn.Module
             PyTorch model of your NN
-        args : Dict[str, Any]
+        args : :obj:
             CLI arguments
         """
 
