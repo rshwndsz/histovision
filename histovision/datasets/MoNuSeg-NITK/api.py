@@ -12,9 +12,9 @@ from albumentations.augmentations import transforms as tf
 from albumentations.core.composition import Compose
 from albumentations.pytorch import ToTensorV2
 
-# Root folder of dataset
-_HERE: str = os.path.dirname(__file__)
-DATA_FOLDER: str = os.path.join(_HERE, "dataset", "raw")
+# Current directory which is also the root folder of the dataset
+# TODO Move to config file
+DATA_FOLDER: str = os.path.dirname(__file__)
 
 
 class SegmentationDataset(Dataset):
@@ -85,10 +85,10 @@ class SegmentationDataset(Dataset):
                              f"as number of classes.")
         if not max(class_dict) == 255:
             raise ValueError(f"Max intensity of grayscale images is 255, but "
-                             f"class dict: \n{class_dict}\n specifies otherwise")
+                             f"the dict: \n{class_dict}\n specifies otherwise")
         if not min(class_dict) == 0:
             raise ValueError(f"Min intensity of grayscale images is 0, but "
-                             f"class dict: \n{class_dict}\n specifies otherwise")
+                             f"the dict: \n{class_dict}\n specifies otherwise")
         self.class_dict = class_dict
 
         # Additional arguments
@@ -129,7 +129,7 @@ class SegmentationDataset(Dataset):
         image = aug_tensors['image']
         mask = aug_tensors['mask']
 
-        # Add a channel dimension (C in [N C H W] in PyTorch nomenclature) if required
+        # Add a channel dimension (C in [N C H W] in PyTorch) if required
         if self.num_classes == 2:
             mask = torch.unsqueeze(mask, dim=0)  # [H, W] => [H, C, W]
 
@@ -192,6 +192,7 @@ class SegmentationDataset(Dataset):
         common_tfs = Compose(common_tfs)
 
         # Mask only transforms
+        # TODO Replace by class dict mapping
         mask_tfs = Compose([
             tf.Normalize(mean=0, std=1, always_apply=True)
         ])
