@@ -1,3 +1,4 @@
+# Imports
 # Python STL
 import os
 import logging
@@ -42,7 +43,7 @@ class SegmentationDataset(Dataset):
             When none are provided sane defaults are used
         """
         # Logger for this class
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger('root')
         logger.info(f"Creating {phase} dataset")
 
         # Root folder of the dataset
@@ -242,7 +243,7 @@ def provider(root: str,
         DataLoader for loading data from CPU to GPU
     """
     image_dataset = SegmentationDataset(root, phase, args)
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger('root')
     logger.info(f"Creating {phase} dataloader")
     dataloader = DataLoader(
         image_dataset,

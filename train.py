@@ -3,63 +3,18 @@
 import os
 import sys
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-import logging
-from logging.config import dictConfig
 # Data Science
 import matplotlib.pyplot as plt
 # PyTorch
 import torch
-# Fancy logs
-import coloredlogs
 # Local
+from histovision.shared import log
 from histovision.architectures.unet.model import model
 from histovision.architectures.unet.trainer import Trainer
 
 # Constants
 # Path to current directory `pwd`
 _HERE = os.path.dirname(__file__)
-
-# Colourful Logging 🌈
-# Logging config as a Dict
-C_LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': True,
-    'loggers': {
-        '': {
-           'level': 'DEBUG',
-           'handlers': ['console']
-        },
-    },
-    'formatters': {
-        'colored_console': {
-            '()': 'coloredlogs.ColoredFormatter',
-            'format': "%(asctime)s - %(name)-18s - %(levelname)-8s"
-                      " - %(message)s",
-            'datefmt': '%H:%M:%S'},
-        'format_for_file': {
-            'format': "%(asctime)s :: %(levelname)s :: %(funcName)s in "
-                      "%(filename)s (l:%(lineno)d) :: %(message)s",
-            'datefmt': '%Y-%m-%d %H:%M:%S'
-        },
-    },
-    'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'colored_console',
-            'stream': 'ext://sys.stdout'
-        },
-    },
-}
-
-# Load logging configuration
-dictConfig(C_LOGGING)
-# Create logger
-logger = logging.getLogger(__name__)
-# Force add color to logs
-coloredlogs.install(fmt=C_LOGGING['formatters']['colored_console']['format'],
-                    stream=sys.stdout,
-                    level='DEBUG', logger=logger)
 
 
 def cli():
@@ -124,7 +79,7 @@ def cli():
         parser_args.save_fname += '.pth'
     else:
         logger.info(f"Model will be saved in "
-                    f"{os.path.join('checkpoints', {parser_args.save_fname})}")
+                    f"{os.path.join('checkpoints', parser_args.save_fname)}")
 
     if parser_args.pretrained:
         logger.info("Using pretrained model")
@@ -181,6 +136,8 @@ def cli():
 
 
 if __name__ == "__main__":
+    # Create root logger
+    logger = log.setup_logger('root')
     # Get arguments from CLI
     args = cli()
     # Get trainer

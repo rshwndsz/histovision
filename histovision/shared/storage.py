@@ -6,8 +6,8 @@ from typing import Dict, List, Tuple
 # PyTorch
 import torch
 # Local
-from torchseg import utils
-from torchseg import metrics
+from histovision.shared import utils
+from histovision.shared import metrics
 
 
 # TODO: Move to an event system
@@ -45,7 +45,7 @@ class Meter(object):
         self.epoch_start_time: datetime = datetime.now()
         epoch_start_time_string = datetime.strftime(self.epoch_start_time,
                                                     '%I:%M:%S %p')
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger('root')
         logger.info(f"Starting epoch: {current_epoch} | "
                     f"phase: {current_phase} | "
                     f"@ {epoch_start_time_string}")
@@ -111,7 +111,7 @@ class Meter(object):
         metric_string += f"in {delta_t.seconds}s"
 
         # Log metrics & time taken
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger('root')
         logger.info(f"{metric_string}")
 
         # Put metrics for this epoch in long term (complete training) storage
@@ -119,7 +119,6 @@ class Meter(object):
             try:
                 self.store[s][self.current_phase].extend(self.metrics[s])
             except KeyError:
-                logger = logging.getLogger(__name__)
                 logger.warning(f"Key '{s}' not found. Skipping...",
                                exc_info=True)
                 continue

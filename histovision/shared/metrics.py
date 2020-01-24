@@ -1,15 +1,14 @@
+# Imports
 # Python STL
 import logging
 from typing import List
-# Data Science
-import numpy as np
 # PyTorch
 import torch
 
 # Local
-from torchseg import utils
+from histovision.shared import utils
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('root')
 
 # TODO: Generalize to multiclass segmentation
 # TODO: Add tests to test integrity
