@@ -2,6 +2,7 @@
 # Python STL
 import os
 import logging
+import errno
 from typing import Dict, Tuple
 # PyTorch
 import torch
@@ -9,10 +10,10 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 # Local
-from .loss import MixedLoss
-from .data import provider
-from .data import DATA_FOLDER
-from torchseg.storage import Meter
+from histovision.shared.loss import MixedLoss
+from histovision.datasets.MoNuSeg_nitk.api import provider
+from histovision.datasets.MoNuSeg_nitk.api import DATA_FOLDER
+from histovision.shared.storage import Meter
 
 # Constants
 _DIRNAME = os.path.dirname(__file__)
@@ -71,6 +72,8 @@ class Trainer(object):
         args : :obj:
             CLI arguments
         """
+        # Get logger
+        logger = logging.getLogger('root')
 
         # Set hyperparameters
         self.num_workers: int = args.num_workers
@@ -89,6 +92,7 @@ class Trainer(object):
         else:
             self.device = torch.device("cuda:0")
             torch.set_default_tensor_type("torch.cuda.FloatTensor")
+        logger.info(f"Using device {self.device}")
 
         if args.checkpoint_name is not None:
             self.checkpoint_path: str = os.path.join(_DIRNAME, "checkpoints",
@@ -117,11 +121,14 @@ class Trainer(object):
         # Get loaders for training and validation
         self.dataloaders = {
             phase: provider(
-                data_folder=DATA_FOLDER,
+                root=DATA_FOLDER,
                 phase=phase,
                 batch_size=self.batch_size[phase],
                 num_workers=self.num_workers,
-                cli_args=args
+                args={
+                    'image_size': args.image_size,
+                    'in_channels': args.in_channels
+                }
             )
             for phase in self.phases
         }
@@ -254,14 +261,20 @@ class Trainer(object):
 
                 # Save model if val loss is lesser than anything seen before
                 if val_loss < self.best_loss:
-                    logger = logging.getLogger(__name__)
-                    logger.info("****** New optimal found, saving state ******")
+                    logger = logging.getLogger('root')
+                    logger.info(f"****** New optimal found, saving state in {self.save_path} ******")
                     state["best_loss"] = self.best_loss = val_loss
                     try:
                         torch.save(state, self.save_path)
                     except FileNotFoundError:
-                        logger.exception(f"Error while saving checkpoint",
-                                         exc_info=True)
+                        logger.exception(f"The file {self.save_path} does not exist. Creating...")
+                        # Create the file and required parent folders
+                        # See: https://stackoverflow.com/a/12517490
+                        try:
+                            os.makedirs(os.path.dirname(self.save_path))
+                        except OSError as exc:  # Guard against race condition
+                            if exc.errno != errno.EEXIST:
+                                raise
 
             # Print newline
             print()
