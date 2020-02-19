@@ -1,22 +1,19 @@
-# Imports
 # Python STL
-import os
+from pathlib import Path
 import logging
-import errno
-from typing import Dict, Tuple
 # PyTorch
 import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.optim as optim
-import torch.backends.cudnn as cudnn
+# Progress bars
+from tqdm import tqdm
 # Local
+from histovision.shared.storage import Meter
+# TODO Use loss based on config
 from histovision.shared.loss import MixedLoss
+# TODO Use dataset based on config
 from histovision.datasets.MoNuSeg_nitk.api import provider
 from histovision.datasets.MoNuSeg_nitk.api import DATA_FOLDER
-from histovision.shared.storage import Meter
-
-# Constants
-_DIRNAME = os.path.dirname(__file__)
 
 
 class BinaryTrainer(object):
@@ -27,26 +24,10 @@ class BinaryTrainer(object):
 
     Attributes
     ----------
-    num_workers : int
-        Number of workers
-    batch_size : int
-        Batch size
-    lr : int
-        Learning rate
-    num_epochs : int
-        Number of epochs
-    current_epoch : int
-        Current epoch
-    phases : list[str]
-        List of learning phases
-    val_freq : int
+    cfg.val_freq : int
         Validation frequency
     device : torch.device
         GPU or CPU
-    checkpoint_path : str
-        Path to checkpoint file
-    save_path : str
-        Path to file where state will be saved
     net
         Our NN in PyTorch
     criterion
@@ -62,85 +43,59 @@ class BinaryTrainer(object):
     meter : Meter
         Object to store loss & scores
     """
-    def __init__(self, model, args):
+    def __init__(self, model, cfg):
         """Initialize a Trainer object
 
         Parameters
         ----------
         model : torch.nn.Module
             PyTorch model of your NN
-        args : :obj:
+        cfg : :obj:
             CLI arguments
         """
-        # Get logger
         logger = logging.getLogger('root')
-
-        # Set hyperparameters
-        self.num_workers: int = args.num_workers
-        self.batch_size: Dict[str, int] = {"train": args.batch_size,
-                                           "val": args.batch_size}
-        self.lr: float = args.lr
-        self.num_epochs: int = args.num_epochs
-        self.current_epoch: int = 0
-        self.phases: Tuple[str, ...] = ("train", "val")
-        self.val_freq: int = args.val_freq
+        self.cfg = cfg
 
         # Torch-specific initializations
         if not torch.cuda.is_available():
             self.device = torch.device("cpu")
             torch.set_default_tensor_type("torch.FloatTensor")
         else:
-            self.device = torch.device("cuda:0")
+            self.device = torch.device("cuda:0")  # <<< Note: Single-GPU
             torch.set_default_tensor_type("torch.cuda.FloatTensor")
         logger.info(f"Using device {self.device}")
 
-        if args.checkpoint_name is not None:
-            self.checkpoint_path: str = os.path.join(_DIRNAME, "checkpoints",
-                                                     args.checkpoint_name)
-        else:
-            self.checkpoint_path = None
-
-        # Path where best model will be saved
-        self.save_path: str = os.path.join(_DIRNAME, "checkpoints",
-                                           args.save_fname)
-
+        # TODO Move to config
         # Model, loss, optimizer & scheduler
         self.net = model
-        # <<<< Catch: https://pytorch.org/docs/stable/optim.html
         self.net = self.net.to(self.device)
         self.criterion = MixedLoss(9.0, 4.0)
         self.optimizer = optim.Adam(self.net.parameters(),
-                                    lr=self.lr)
+                                    lr=self.cfg.lr)
         self.scheduler = ReduceLROnPlateau(self.optimizer, mode="min",
                                            patience=3, verbose=True,
                                            cooldown=0, min_lr=3e-6)
-
-        # Faster convolutions at the expense of memory
-        cudnn.benchmark = True
 
         # Get loaders for training and validation
         self.dataloaders = {
             phase: provider(
                 root=DATA_FOLDER,
                 phase=phase,
-                batch_size=self.batch_size[phase],
-                num_workers=self.num_workers,
+                batch_size=self.cfg.batch_size[phase],
+                num_workers=self.cfg.num_workers,
                 args={
-                    'image_size': args.image_size,
-                    'in_channels': args.in_channels
+                    'image_size': self.cfg.image_size,
+                    'in_channels': self.cfg.in_channels
                 }
             )
-            for phase in self.phases
+            for phase in self.cfg.phases
         }
 
         # Initialize losses & scores
-        self.best_loss: float = float("inf")  # Very high
-        self.meter = Meter(self.phases, scores=('loss', 'iou', 'dice',
-                                                'acc', 'prec'))
+        self.best_loss = float("inf")
+        self.meter = Meter(self.cfg.phases, scores=self.cfg.scores)
 
-    def forward(self,
-                images: torch.Tensor,
-                targets: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, images, targets):
         """Forward pass
 
         Parameters
@@ -158,16 +113,13 @@ class BinaryTrainer(object):
             Raw output of the NN, without any activation function
             in the last layer
         """
-
-        images: torch.Tensor = images.to(self.device)
-        masks: torch.Tensor = targets.to(self.device)
-        logits: torch.Tensor = self.net(images)
-        loss: torch.Tensor = self.criterion(logits, masks)
+        images = images.to(self.device)
+        masks = targets.to(self.device)
+        logits = self.net(images)
+        loss = self.criterion(logits, masks)
         return loss, logits
 
-    def iterate(self,
-                epoch: int,
-                phase: str) -> float:
+    def iterate(self, epoch, phase):
         """1 epoch in the life of a model
 
         Parameters
@@ -182,19 +134,18 @@ class BinaryTrainer(object):
         epoch_loss: float
             Average loss for the epoch
         """
-
         # Set model & dataloader based on phase
         self.net.train(phase == "train")
         dataloader = self.dataloaders[phase]
 
         # ===ON_EPOCH_BEGIN===
+        # TODO Add event system
         self.meter.on_epoch_begin(epoch, phase)
 
         # Learning!
         self.optimizer.zero_grad()
 
-        # TODO: Add progress bar
-        for itr, batch in enumerate(dataloader):
+        for itr, batch in tqdm(enumerate(dataloader), total=len(dataloader)):
             # Load images and targets
             images, targets = batch
 
@@ -235,9 +186,9 @@ class BinaryTrainer(object):
         self.meter.on_train_begin()
 
         # <<< Change: Hardcoded starting epoch
-        for epoch in range(1, self.num_epochs + 1):
-            # Update current_epoch
-            self.current_epoch: int = epoch
+        for epoch in range(1, self.cfg.num_epochs + 1):
+            # Update start_epoch
+            self.cfg.start_epoch = epoch
 
             # Train model for 1 epoch
             self.iterate(epoch, "train")
@@ -251,34 +202,25 @@ class BinaryTrainer(object):
             }
 
             # Validate model for `val_freq` epochs
-            if epoch % self.val_freq == 0:
+            if epoch % self.cfg.val_freq == 0:
                 val_loss = self.iterate(epoch, "val")
 
                 # Step the scheduler based on validation loss
                 self.scheduler.step(val_loss)
 
-                # TODO: Add EarlyStopping
+                # TODO Add EarlyStopping
 
                 # Save model if val loss is lesser than anything seen before
                 if val_loss < self.best_loss:
                     logger = logging.getLogger('root')
-                    logger.info(f"****** New optimal found, saving state in "
-                                f"{self.save_path} ******")
+                    logger.info(f"**** New optimal found, saving state in "
+                                f"{self.cfg.best_weights_path} ****")
                     state["best_loss"] = self.best_loss = val_loss
-                    try:
-                        torch.save(state, self.save_path)
-                    except FileNotFoundError:
-                        logger.exception(f"The file {self.save_path} "
-                                         f"does not exist. Creating...")
-                        # Create the file and required parent folders
-                        # See: https://stackoverflow.com/a/12517490
-                        try:
-                            os.makedirs(os.path.dirname(self.save_path))
-                        except OSError as exc:  # Guard against race condition
-                            if exc.errno != errno.EEXIST:
-                                raise
+                    Path(self.cfg.best_weights_path).mkdir(
+                        parents=True, exist_ok=True)
+                    torch.save(state, self.cfg.best_weights_path)
 
-            # Print newline
+            # Print newline after every epoch
             print()
 
         # ===ON_TRAIN_END===
