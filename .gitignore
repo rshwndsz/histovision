@@ -132,15 +132,18 @@ dmypy.json
 # MacOS
 .DS_Store
 
-# Dataset
+# Datasets
 */datasets/**/*.png
 */datasets/**/*.jpg
 */datasets/**/*.xml
 */datasets/**/*.tif
 
-# IDEs
+# IDE config files
 .vscode/
 .idea/
 
-# Checkpoints
+# Model weights
 **/checkpoints/*
+
+# Hydra output files
+outputs/
