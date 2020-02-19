@@ -10,7 +10,7 @@ from tqdm import tqdm
 # Local
 from histovision.shared.storage import Meter
 # TODO Use loss based on config
-from histovision.shared.loss import MixedLoss
+from histovision.losses import MixedLoss
 # TODO Use dataset based on config
 from histovision.datasets.MoNuSeg_nitk.api import provider
 from histovision.datasets.MoNuSeg_nitk.api import DATA_FOLDER
@@ -139,7 +139,6 @@ class BinaryTrainer(object):
         dataloader = self.dataloaders[phase]
 
         # ===ON_EPOCH_BEGIN===
-        # TODO Add event system
         self.meter.on_epoch_begin(epoch, phase)
 
         # Learning!
