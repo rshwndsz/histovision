@@ -24,6 +24,8 @@ _HERE = os.path.dirname(__file__)
 def train(cfg):
     # Create root logger
     logger = log.setup_logger('root')
+    # Validate configuration
+    cfg = validate_config(cfg)
     # Faster convolutions at the expense of memory
     cudnn.benchmark = cfg.cudnn_benchmark
     # Get trainer
@@ -69,6 +71,18 @@ def train(cfg):
 
     for metric_name, metric_values in model_trainer.meter.store.items():
         metric_plot(metric_values, metric_name)
+
+
+def validate_config(cfg):
+    # Device
+    if not torch.cuda.is_available():
+        cfg.device = "cpu"
+        torch.set_default_tensor_type("torch.FloatTensor")
+    else:
+        cfg.device = "cuda:0"  # <<< Note: Single-GPU
+        torch.set_default_tensor_type("torch.cuda.FloatTensor")
+
+    return cfg
 
 
 if __name__ == "__main__":

@@ -9,9 +9,9 @@ import torch.optim as optim
 from tqdm import tqdm
 # Local
 from histovision.shared.storage import Meter
-# TODO Use loss based on config
+# TODO Read loss from config
 from histovision.losses import MixedLoss
-# TODO Use dataset based on config
+# TODO Read dataset from config
 from histovision.datasets.MoNuSeg_nitk.api import provider
 from histovision.datasets.MoNuSeg_nitk.api import DATA_FOLDER
 
@@ -24,10 +24,6 @@ class BinaryTrainer(object):
 
     Attributes
     ----------
-    cfg.val_freq : int
-        Validation frequency
-    device : torch.device
-        GPU or CPU
     net
         Our NN in PyTorch
     criterion
@@ -58,25 +54,17 @@ class BinaryTrainer(object):
 
         # Save config
         self.cfg = cfg
+        logger.info(f"\n{cfg.pretty()}")
 
-        logger.info("\n", cfg.pretty())
-
-        # Check if CUDA is available, if not move to CPU
-        if not torch.cuda.is_available():
-            self.device = torch.device("cpu")
-            torch.set_default_tensor_type("torch.FloatTensor")
-        else:
-            self.device = torch.device("cuda:0")  # <<< Note: Single-GPU
-            torch.set_default_tensor_type("torch.cuda.FloatTensor")
-        logger.info(f"Using device {self.device}")
-
-        # TODO Move to config
+        # TODO Read model from config
         # Model, loss, optimizer & scheduler
         self.net = model
-        self.net = self.net.to(self.device)
+        self.net = self.net.to(self.cfg.device)
         self.criterion = MixedLoss(9.0, 4.0)
+        # TODO Read optimizer from config
         self.optimizer = optim.Adam(self.net.parameters(),
-                                    lr=self.cfg.lr)
+                                    lr=self.cfg.hyperparams.lr)
+        # TODO Read scheduler from config
         self.scheduler = ReduceLROnPlateau(self.optimizer, mode="min",
                                            patience=3, verbose=True,
                                            cooldown=0, min_lr=3e-6)
@@ -84,21 +72,22 @@ class BinaryTrainer(object):
         # Get loaders for training and validation
         self.dataloaders = {
             phase: provider(
+                # TODO Read DATA_FOLDER from config
                 root=DATA_FOLDER,
                 phase=phase,
-                batch_size=self.cfg.batch_size[phase],
+                batch_size=self.cfg.hyperparams.batch_size[phase],
                 num_workers=self.cfg.num_workers,
                 args={
-                    'image_size': self.cfg.image_size,
-                    'in_channels': self.cfg.in_channels
+                    'image_size': self.cfg.dataset.image_size,
+                    'in_channels': self.cfg.dataset.in_channels
                 }
             )
-            for phase in self.cfg.phases
+            for phase in ('train', 'val')
         }
 
         # Initialize losses & scores
         self.best_loss = float("inf")
-        self.meter = Meter(self.cfg.phases, scores=self.cfg.scores)
+        self.meter = Meter(scores=self.cfg.scores)
 
     def forward(self, images, targets):
         """Forward pass
@@ -118,8 +107,8 @@ class BinaryTrainer(object):
             Raw output of the NN, without any activation function
             in the last layer
         """
-        images = images.to(self.device)
-        masks = targets.to(self.device)
+        images = images.to(self.cfg.device)
+        masks = targets.to(self.cfg.device)
         logits = self.net(images)
         loss = self.criterion(logits, masks)
         return loss, logits
@@ -190,7 +179,7 @@ class BinaryTrainer(object):
         self.meter.on_train_begin()
 
         # <<< Change: Hardcoded starting epoch
-        for epoch in range(1, self.cfg.num_epochs + 1):
+        for epoch in range(1, self.cfg.hyperparams.num_epochs + 1):
             # Update start_epoch
             self.cfg.start_epoch = epoch
 

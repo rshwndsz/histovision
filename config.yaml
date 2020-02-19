@@ -1,18 +1,18 @@
-model: unet
+arch:
+  model:
+    name: unet
+    pretrained: imagenet
+  num_classes: 2
+  criterion: cross_entropy
+  optimizer: adam
 
-num_classes: 2
-pretrained: imagenet
-criterion: cross_entropy
-optimizer: adam
+hyperparams:
+  batch_size:
+    train: 32
+    val: 32
+  lr: 3e-4
+  num_epochs: 100
 
-phases:
-  - train
-  - val
-batch_size:
-  train: 32
-  val: 32
-lr: 3e-4
-num_epochs: 100
 scores:
   - loss
   - iou
@@ -20,8 +20,10 @@ scores:
   - acc
   - prec
 
-image_size: 256
-in_channels: 3
+dataset:
+  name: MoNuSeg_nitk
+  in_channels: 3
+  image_size: 256
 
 start_epoch: 0
 num_workers: 4
