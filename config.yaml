@@ -1,7 +1,5 @@
 arch:
-  model:
-    name: unet
-    pretrained: imagenet
+  model: unet
   num_classes: 2
   criterion: cross_entropy
   optimizer: adam
@@ -24,6 +22,33 @@ dataset:
   name: MoNuSeg_nitk
   in_channels: 3
   image_size: 256
+
+augmentations:
+  train:
+    ShiftScaleRotate:
+      shift_limit: 0
+      scale_limit: 0
+      rotate_limit: 15
+      p: 0.5
+    Flip:
+      p: 0.5
+    RandomRotate90:
+      p: 0.5
+    RandomBrightnessContrast:
+      p: 0.5
+    ElasticTransform:
+      p: 0.5
+    MultiplicativeNoise:
+      p: 0.5
+    RandomSizedCrop:
+      min_max_height:
+        - ${dataset.image_size}
+        - ${dataset.image_size}
+      height: ${dataset.image_size}
+      width: ${dataset.image_size}
+      w2h_ratio: 1.0
+      interpolation: cv2.INTER_LINEAR
+      p: 1.0
 
 start_epoch: 0
 num_workers: 4

@@ -1,8 +1,6 @@
-# Imports
 # Python STL
 import os
 import logging
-from typing import Any, Dict
 # Image Processing
 import cv2
 # PyTorch
@@ -14,17 +12,12 @@ from albumentations.core.composition import Compose
 from albumentations.pytorch import ToTensorV2
 
 # Current directory which is also the root folder of the dataset
-# TODO Move to config file
+# TODO Move DATA_FOLDER to config file
 DATA_FOLDER: str = os.path.dirname(__file__)
 
 
 class SegmentationDataset(Dataset):
-    def __init__(self,
-                 root: str,
-                 phase: str,
-                 args: Dict[str, Any],
-                 num_classes: int = 2,
-                 class_dict: Dict[int, int] = (0, 255), ):
+    def __init__(self, root, phase, args, num_classes=2, class_dict=(0, 255)):
         """Create an API for the dataset
 
         Parameters
@@ -45,6 +38,8 @@ class SegmentationDataset(Dataset):
         # Logger for this class
         logger = logging.getLogger('root')
         logger.info(f"Creating {phase} dataset")
+
+        # TODO Read dataset settings from config
 
         # Root folder of the dataset
         if not os.path.isdir(root):
@@ -115,11 +110,11 @@ class SegmentationDataset(Dataset):
         mask_path = os.path.join(self.root, self.phase, "masks", mask_name)
         # Masks should have int values in [0, C-1] where C => Number of classes
         # Checking the above condition for every mask is inefficient
-        # So it's left to you 🙇:)
+        # So it's left to you 🙇
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         # Check if mask has been read properly
         if mask.size == 0:
-            raise IOError(f"cv2: Unable to load mask - {mask_path}")
+            raise IOError(f"cv2: Unable to load mask from {mask_path}")
 
         # Data Augmentation for image and mask
         augmented = self.transforms['aug'](image=image, mask=mask)
@@ -140,9 +135,9 @@ class SegmentationDataset(Dataset):
     def __len__(self):
         return len(self.image_names)
 
+    # TODO Read transforms from config
     @staticmethod
-    def get_transforms(phase: str,
-                       args: Dict[str, Any]) -> Dict[str, Compose]:
+    def get_transforms(phase, args):
         """Get composed albumentations augmentations
 
         Parameters
@@ -174,7 +169,7 @@ class SegmentationDataset(Dataset):
                 tf.Flip(p=0.5),
                 tf.RandomRotate90(p=0.5),
             ])
-            # Exotic Augmentations for train only 🤤
+            # Exotic Augmentations for train only
             common_tfs.extend([
                 tf.RandomBrightnessContrast(p=0.5),
                 tf.ElasticTransform(p=0.5),
@@ -216,11 +211,7 @@ class SegmentationDataset(Dataset):
         return transforms
 
 
-def provider(root: str,
-             phase: str,
-             args: Dict[str, Any],
-             batch_size: int = 8,
-             num_workers: int = 4, ) -> DataLoader:
+def provider(root, phase, args, batch_size=8, num_workers=4):
     """Return dataloader for a given dataset & phase
 
     Parameters

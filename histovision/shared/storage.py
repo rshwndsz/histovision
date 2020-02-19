@@ -1,4 +1,3 @@
-# Imports
 # Python STL
 from datetime import datetime
 import logging
@@ -8,39 +7,39 @@ import torch
 from histovision.shared import utils
 import histovision.metrics as metrics
 
+# Get root logger
+logger = logging.getLogger('root')
 
-# TODO: Move to an event system
-# TODO: Have a better way to add metrics & associated functions
-# See: https://stackoverflow.com/questions/1092531/event-system-in-python/
 
 class Meter(object):
+    """Object to log & hold values during training"""
     def __init__(self,
                  phases=('train', 'val'),
                  scores=('loss', 'iou')):
         self.phases = phases
-        self.current_phase = 'train'
+        self.current_phase = phases[0]
         self.scores = scores
+        # Storage over all epochs
         self.store = {
             score: {
                 phase: [] for phase in self.phases
             } for score in self.scores
         }
         self.base_threshold = 0.5
+        # Storage over 1 single epoch
         self.metrics = {
             score: [] for score in self.scores
         }
-
         self.epoch_start_time = datetime.now()
 
     def on_train_begin(self):
         pass
 
-    def on_epoch_begin(self, current_epoch, current_phase,):
+    def on_epoch_begin(self, current_epoch, current_phase):
         # Log epoch, phase and start time
         self.epoch_start_time = datetime.now()
         epoch_start_time_string = datetime.strftime(self.epoch_start_time,
                                                     '%I:%M:%S %p')
-        logger = logging.getLogger('root')
         logger.info(f"Starting epoch: {current_epoch} | "
                     f"phase: {current_phase} | "
                     f"@ {epoch_start_time_string}")
@@ -100,7 +99,6 @@ class Meter(object):
         metric_string += f"in {delta_t.seconds}s"
 
         # Log metrics & time taken
-        logger = logging.getLogger('root')
         logger.info(f"{metric_string}")
 
         # Put metrics for this epoch in long term (complete training) storage
