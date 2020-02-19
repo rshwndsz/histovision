@@ -1,6 +1,7 @@
 # Imports
 # Python STL
 import os
+from pathlib import Path
 import sys
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 # Data Science
@@ -78,13 +79,13 @@ def cli():
         logger.info(f"Adding .pth to the end...")
         parser_args.save_fname += '.pth'
     else:
-        logger.info(f"Model will be saved in "
+        logger.info(f"Model weights will be saved in "
                     f"{os.path.join('checkpoints', parser_args.save_fname)}")
 
     if parser_args.pretrained:
-        logger.info("Using pretrained model")
+        logger.info("Using a pretrained model")
     else:
-        logger.info("Using random weights")
+        logger.info("Using randomly initialized weights")
 
     # Check if `num_epochs` is a positive integer
     if parser_args.num_epochs <= 0:
@@ -161,7 +162,11 @@ if __name__ == "__main__":
             torch.save(state, os.path.join(_HERE, "histovision",
                                            "checkpoints", args.save_fname))
         except FileNotFoundError as e:
-            logger.exception(f"Error while saving checkpoint", exc_info=True)
+            # https://stackoverflow.com/a/273227
+            Path(os.path.join(_HERE, "histovision", "checkpoints", args.save_fname)).mkdir(
+                parents=True,
+                exist_ok=True
+            )
         else:
             logger.info("Saved 🎉")
         # Exit
