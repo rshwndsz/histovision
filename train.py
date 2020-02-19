@@ -26,6 +26,8 @@ def train(cfg):
     logger = log.setup_logger('root')
     # Validate configuration
     cfg = validate_config(cfg)
+    # Log resolved configurations
+    logger.info(f"\n{cfg.pretty(resolve=True)}")
     # Faster convolutions at the expense of memory
     cudnn.benchmark = cfg.cudnn_benchmark
     # Get trainer
@@ -45,8 +47,8 @@ def train(cfg):
         }
         logger.info("**** Saving state before exiting ****")
         # Save state if possible
-        # https://stackoverflow.com/a/273227
-        Path(cfg.final_weights_path).mkdir(parents=True, exist_ok=True)
+        # Create file with parent directories if it doesn't exist
+        Path(cfg.final_weights_path).parent.mkdir(parents=True, exist_ok=True)
         torch.save(state, cfg.final_weights_path)
         logger.info("Saved 🎉")
         # Exit
@@ -73,8 +75,36 @@ def train(cfg):
         metric_plot(metric_values, metric_name)
 
 
+# TODO Validate everything else in config
 def validate_config(cfg):
-    # Device
+    # dataset
+    # dataset.root
+    if not Path(cfg.dataset.root).is_dir():
+        raise NotADirectoryError(f"{cfg.dataset.root} is not a directory or it doesn't exist.")
+
+    # dataset.root/imgs/[train, val]/[imgs, masks]
+    _path_to_imgs = Path(cfg.dataset.root) / "train" / "imgs"
+    if not Path(_path_to_imgs).is_dir():
+        raise FileNotFoundError(f"{_path_to_imgs} doesn't exist.")
+    _path_to_imgs = Path(cfg.dataset.root) / "val" / "imgs"
+    if not Path(_path_to_imgs).is_dir():
+        raise FileNotFoundError(f"{_path_to_imgs} doesn't exist.")
+    _path_to_imgs = Path(cfg.dataset.root) / "train" / "masks"
+    if not Path(_path_to_imgs).is_dir():
+        raise FileNotFoundError(f"{_path_to_imgs} doesn't exist.")
+    _path_to_imgs = Path(cfg.dataset.root) / "val" / "masks"
+    if not Path(_path_to_imgs).is_dir():
+        raise FileNotFoundError(f"{_path_to_imgs} doesn't exist.")
+
+    # dataset.num_classes
+    if not cfg.dataset.num_classes >= 2:
+        raise ValueError(f"Number of classes must be >= 2. 2 => Binary, >2 => Multi-class")
+
+    # dataset.class_dict
+    if not len(cfg.dataset.class_dict) == cfg.dataset.num_classes:
+        raise ValueError(f"Length of class dict must be same as number of classes.")
+
+    # device
     if not torch.cuda.is_available():
         cfg.device = "cpu"
         torch.set_default_tensor_type("torch.FloatTensor")

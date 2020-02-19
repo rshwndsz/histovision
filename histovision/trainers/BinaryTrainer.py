@@ -13,7 +13,9 @@ from histovision.shared.storage import Meter
 from histovision.losses import MixedLoss
 # TODO Read dataset from config
 from histovision.datasets.MoNuSeg_nitk.api import provider
-from histovision.datasets.MoNuSeg_nitk.api import DATA_FOLDER
+
+# Get root logger
+logger = logging.getLogger('root')
 
 
 class BinaryTrainer(object):
@@ -49,12 +51,8 @@ class BinaryTrainer(object):
         cfg : :obj:
             CLI arguments
         """
-        # Get root logger
-        logger = logging.getLogger('root')
-
         # Save config
         self.cfg = cfg
-        logger.info(f"\n{cfg.pretty()}")
 
         # TODO Read model from config
         # Model, loss, optimizer & scheduler
@@ -72,15 +70,8 @@ class BinaryTrainer(object):
         # Get loaders for training and validation
         self.dataloaders = {
             phase: provider(
-                # TODO Read DATA_FOLDER from config
-                root=DATA_FOLDER,
                 phase=phase,
-                batch_size=self.cfg.hyperparams.batch_size[phase],
-                num_workers=self.cfg.num_workers,
-                args={
-                    'image_size': self.cfg.dataset.image_size,
-                    'in_channels': self.cfg.dataset.in_channels
-                }
+                cfg=cfg
             )
             for phase in ('train', 'val')
         }
@@ -205,7 +196,6 @@ class BinaryTrainer(object):
 
                 # Save model if val loss is lesser than anything seen before
                 if val_loss < self.best_loss:
-                    logger = logging.getLogger('root')
                     logger.info(f"**** New optimal found, saving state in "
                                 f"{self.cfg.best_weights_path} ****")
                     state["best_loss"] = self.best_loss = val_loss
