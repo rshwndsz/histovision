@@ -10,6 +10,7 @@ Move the training data into `histovision/datasets/MoNuSeg/MoNuSegTrainData`
 Move the test data into `histovision/datasets/MoNuSeg/MoNuSegTestData`
 
 Final structure looks something like this:  
+```
 .  
 └── MoNuSeg  
    ├── MoNuSegTestData  
@@ -25,4 +26,4 @@ Final structure looks something like this:
    │  ├── Annotations  
    │  └── Tissue Images  
    └── README.md  
-
+```
