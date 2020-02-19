@@ -13,7 +13,7 @@ import hydra
 # Local
 from histovision.shared import log
 from histovision.models.unet import model
-from histovision.trainers.BinaryTrainer import BinaryTrainer as Trainer
+from histovision.trainers.binarytrainer import BinaryTrainer as Trainer
 
 # Constants
 # Path to current directory `pwd`
@@ -43,15 +43,10 @@ def train(cfg):
         }
         logger.info("**** Saving state before exiting ****")
         # Save state if possible
-        save_path = os.path.join(_HERE, "histovision",
-                                 "checkpoints", cfg.final_weights_path)
-        try:
-            torch.save(state, save_path)
-        except FileNotFoundError:
-            # https://stackoverflow.com/a/273227
-            Path(save_path).mkdir(parents=True, exist_ok=True)
-        else:
-            logger.info("Saved 🎉")
+        # https://stackoverflow.com/a/273227
+        Path(cfg.final_weights_path).mkdir(parents=True, exist_ok=True)
+        torch.save(state, cfg.final_weights_path)
+        logger.info("Saved 🎉")
         # Exit
         sys.exit(0)
 
