@@ -53,10 +53,15 @@ class BinaryTrainer(object):
         cfg : :obj:
             CLI arguments
         """
+        # Get root logger
         logger = logging.getLogger('root')
+
+        # Save config
         self.cfg = cfg
 
-        # Torch-specific initializations
+        logger.info("\n", cfg.pretty())
+
+        # Check if CUDA is available, if not move to CPU
         if not torch.cuda.is_available():
             self.device = torch.device("cpu")
             torch.set_default_tensor_type("torch.FloatTensor")

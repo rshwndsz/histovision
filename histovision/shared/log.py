@@ -9,7 +9,7 @@ def setup_logger(name, level='INFO'):
     # Path to current directory `pwd`
     _HERE = os.path.dirname(__file__)
     # Logging config as a Dict
-    LOGGING_CONFIG = {
+    logging_config = {
         'version': 1,
         'disable_existing_loggers': False,
         'loggers': {
@@ -40,7 +40,7 @@ def setup_logger(name, level='INFO'):
         },
     }
     # Load logging configuration
-    dictConfig(LOGGING_CONFIG)
+    dictConfig(logging_config)
     # Create logger
     logger = logging.getLogger(name)
 

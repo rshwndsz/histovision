@@ -1,4 +1,5 @@
-name: unet
+model: unet
+
 num_classes: 2
 pretrained: imagenet
 criterion: cross_entropy
