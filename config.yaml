@@ -29,22 +29,15 @@ dataset:
   num_classes: 2
 
 augmentations:
-  train:
-    ShiftScaleRotate:
-      shift_limit: 0
-      scale_limit: 0
-      rotate_limit: 15
-      p: 0.5
-    Flip:
-      p: 0.5
-    RandomRotate90:
-      p: 0.5
-    RandomBrightnessContrast:
-      p: 0.5
-    ElasticTransform:
-      p: 0.5
-    MultiplicativeNoise:
-      p: 0.5
+  common:
+    train:
+      ShiftScaleRotate: {shift_limit: 0, scale_limit: 0, rotate_limit: 15, p: 0.5}
+      Flip: {p: 0.5}
+      RandomRotate90: {p: 0.5}
+      RandomBrightnessContrast: {p: 0.5}
+      ElasticTransform: {p: 0.5}
+      MultiplicativeNoise: {p: 0.5}
+
     RandomSizedCrop:
       min_max_height:
         - ${dataset.image_size}
@@ -54,6 +47,23 @@ augmentations:
       w2h_ratio: 1.0
       interpolation: cv2.INTER_LINEAR
       p: 1.0
+
+  image_only:
+    Normalize:
+      mean: [0.0, 0.0, 0.0]
+      std: [1.0, 1.0, 1.0]
+      always_apply: true
+
+  # TODO Replace with class_dict
+  mask_only:
+    Normalize:
+      mean: 0.0
+      std: 1.0
+      always_apply: true
+
+  final:
+    - ToTensorV2
+
 
 start_epoch: 0
 num_workers: 4
