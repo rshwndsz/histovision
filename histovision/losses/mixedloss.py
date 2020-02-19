@@ -2,14 +2,13 @@
 # PyTorch
 import torch
 from torch import nn
+# noinspection PyPep8Naming
 from torch.nn import functional as F
 
 
 class DiceLoss(nn.Module):
     # See: https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient
-    def forward(self,
-                logits: torch.Tensor, target: torch.Tensor,
-                smooth: float = 1e-7) -> torch.Tensor:
+    def forward(self, logits, target, smooth=1e-7):
         probs = torch.sigmoid(logits)
         iflat = probs.view(-1)
         tflat = target.view(-1)
@@ -24,9 +23,7 @@ class FocalLoss(nn.Module):
         super().__init__()
         self.gamma = gamma
 
-    def forward(self,
-                logits: torch.Tensor,
-                target: torch.Tensor) -> torch.Tensor:
+    def forward(self, logits, target):
         if not (target.size() == logits.size()):
             raise ValueError(f"Target size ({target.size()}) must be the same "
                              f"as input size ({logits.size()})")
@@ -46,9 +43,7 @@ class MixedLoss(nn.Module):
         self.focal_loss = FocalLoss(gamma)
         self.dice_loss = DiceLoss()
 
-    def forward(self,
-                logits: torch.Tensor,
-                target: torch.Tensor) -> torch.Tensor:
+    def forward(self, logits, target):
         loss = (self.alpha * self.focal_loss(logits, target) -
                 torch.log(self.dice_loss(logits, target)))
 
