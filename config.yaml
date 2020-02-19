@@ -1,0 +1,33 @@
+name: unet
+num_classes: 2
+pretrained: imagenet
+criterion: cross_entropy
+optimizer: adam
+
+phases:
+  - train
+  - val
+batch_size:
+  train: 32
+  val: 32
+lr: 3e-4
+num_epochs: 100
+scores:
+  - loss
+  - iou
+  - dice
+  - acc
+  - prec
+
+image_size: 256
+in_channels: 3
+
+start_epoch: 0
+num_workers: 4
+val_freq: 4
+device: cuda
+final_weights_path: /Users/Russel/myProjects/histovision/checkpoints/final_weights.pth
+best_weights_path: /Users/Russel/myProjects/histovision/checkpoints/best_weights.pth
+dataset_root: /Users/Russel/myProjects/histovision/datasets/MoNuSeg_nitk/
+
+cudnn_benchmark: true
