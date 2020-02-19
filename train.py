@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 import torch
 # Local
 from histovision.shared import log
-from histovision.architectures.unet.model import model
-from histovision.architectures.unet.trainer import Trainer
+from histovision.models.unet import model
+from histovision.trainers.BinaryTrainer import BinaryTrainer as Trainer
 
 # Constants
 # Path to current directory `pwd`
@@ -26,7 +26,7 @@ def cli():
     # Pretraining based arguments
     parser.add_argument('-c', '--checkpoint', dest='checkpoint_name', type=str,
                         nargs="?", default=None, const="model.pth",
-                        help='Name of checkpoint file in torchseg/checkpoints/')
+                        help='Name of checkpoint file in checkpoints/')
     parser.add_argument('-s', '--save', dest='save_fname', type=str,
                         default="model-saved.pth",
                         help="File in checkpoints/ to save state")
@@ -62,7 +62,7 @@ def cli():
     # Some checks on provided arguments
     # Check if `checkpoint_name` leads to a valid path
     if parser_args.checkpoint_name is not None:
-        _checkpoint_path = os.path.join(_HERE, "torchseg", "checkpoints",
+        _checkpoint_path = os.path.join(_HERE, "histovision", "checkpoints",
                                         parser_args.checkpoint_name)
         if not os.path.exists(_checkpoint_path):
             raise FileNotFoundError("The checkpoints file at {} was not found."
@@ -126,7 +126,7 @@ def cli():
 
     # Check if number of channels is a positive integer less than 16
     if not parser_args.in_channels > 0 and parser_args.in_channels < 16:
-        raise ValueError(f"Number of input channels ({parser_args.in_channels})"
+        raise ValueError(f"No. of input channels ({parser_args.in_channels})"
                          f" must be within (0, 16)")
     else:
         logger.info(f"Images will be loaded with {parser_args.in_channels} "
@@ -143,11 +143,11 @@ if __name__ == "__main__":
     args = cli()
     # Get trainer
     model_trainer = Trainer(model, args)
-    # `try-except` to save model before exiting if there is a keyboard interrupt
+    # `try-except` to save model before exiting if ^C was pressed
     try:
         # Start training + validation
         model_trainer.start()
-    except KeyboardInterrupt or SystemExit as e:
+    except KeyboardInterrupt or SystemExit:
         logger.info("Exit requested during train-val")
         # Collect state
         state = {
@@ -158,15 +158,13 @@ if __name__ == "__main__":
         }
         logger.info("******** Saving state before exiting ********")
         # Save state if possible
+        save_path = os.path.join(_HERE, "histovision",
+                                 "checkpoints", args.save_fname)
         try:
-            torch.save(state, os.path.join(_HERE, "histovision",
-                                           "checkpoints", args.save_fname))
-        except FileNotFoundError as e:
+            torch.save(state, save_path)
+        except FileNotFoundError:
             # https://stackoverflow.com/a/273227
-            Path(os.path.join(_HERE, "histovision", "checkpoints", args.save_fname)).mkdir(
-                parents=True,
-                exist_ok=True
-            )
+            Path(save_path).mkdir(parents=True, exist_ok=True)
         else:
             logger.info("Saved 🎉")
         # Exit

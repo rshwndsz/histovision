@@ -19,7 +19,7 @@ from histovision.shared.storage import Meter
 _DIRNAME = os.path.dirname(__file__)
 
 
-class Trainer(object):
+class BinaryTrainer(object):
     """An object to encompass all training and validation
 
     Training loop, validation loop, logging, checkpoints are all
@@ -262,12 +262,14 @@ class Trainer(object):
                 # Save model if val loss is lesser than anything seen before
                 if val_loss < self.best_loss:
                     logger = logging.getLogger('root')
-                    logger.info(f"****** New optimal found, saving state in {self.save_path} ******")
+                    logger.info(f"****** New optimal found, saving state in "
+                                f"{self.save_path} ******")
                     state["best_loss"] = self.best_loss = val_loss
                     try:
                         torch.save(state, self.save_path)
                     except FileNotFoundError:
-                        logger.exception(f"The file {self.save_path} does not exist. Creating...")
+                        logger.exception(f"The file {self.save_path} "
+                                         f"does not exist. Creating...")
                         # Create the file and required parent folders
                         # See: https://stackoverflow.com/a/12517490
                         try:
