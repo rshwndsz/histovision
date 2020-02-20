@@ -199,7 +199,7 @@ class BinaryTrainer(object):
                     logger.info(f"**** New optimal found, saving state in "
                                 f"{self.cfg.best_weights_path} ****")
                     state["best_loss"] = self.best_loss = val_loss
-                    Path(self.cfg.best_weights_path).mkdir(
+                    Path(self.cfg.best_weights_path).parent.mkdir(
                         parents=True, exist_ok=True)
                     torch.save(state, self.cfg.best_weights_path)
 
