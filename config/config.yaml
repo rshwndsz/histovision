@@ -1,6 +1,6 @@
-defaults:
-  model: unet
-  dataset: MoNuSeg_nitk
+#defaults:
+#  - model: unet
+#  - dataset: MoNuSeg_nitk
 
 criterion: MixedLoss
 optimizer: Adam
@@ -14,20 +14,27 @@ scores: [loss, iou, dice, acc, prec]
 
 augmentations:
   common:
-    train:
-      ShiftScaleRotate: {shift_limit: 0, scale_limit: 0, rotate_limit: 15, p: 0.5}
-      Flip: {p: 0.5}
-      RandomRotate90: {p: 0.5}
-      RandomBrightnessContrast: {p: 0.5}
-      ElasticTransform: {p: 0.5}
-      MultiplicativeNoise: {p: 0.5}
-
+    ShiftScaleRotate:
+      shift_limit: 0
+      scale_limit: 0
+      rotate_limit: 15
+      p: 0.5
+    Flip:
+      p: 0.5
+    RandomRotate90:
+      p: 0.5
+    RandomBrightnessContrast:
+      p: 0.5
+    ElasticTransform:
+      p: 0.5
     RandomSizedCrop:
-      min_max_height: [${dataset.image_size}, ${dataset.image_size}]
+      min_max_height:
+        - '${dataset.image_size}'
+        - '${dataset.image_size}'
       height: ${dataset.image_size}
       width: ${dataset.image_size}
       w2h_ratio: 1.0
-      interpolation: cv2.INTER_LINEAR
+      interpolation: 1 # cv2.INTER_LINEAR
       p: 1.0
 
   image_only:
