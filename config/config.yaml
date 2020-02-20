@@ -1,4 +1,7 @@
-model: unet
+defaults:
+  model: unet
+  dataset: MoNuSeg_nitk
+
 criterion: MixedLoss
 optimizer: Adam
 
@@ -8,8 +11,6 @@ hyperparams:
   num_epochs: 100
 
 scores: [loss, iou, dice, acc, prec]
-
-dataset: MoNuSeg_nitk
 
 augmentations:
   common:
@@ -22,9 +23,7 @@ augmentations:
       MultiplicativeNoise: {p: 0.5}
 
     RandomSizedCrop:
-      min_max_height:
-        - ${dataset.image_size}
-        - ${dataset.image_size}
+      min_max_height: [${dataset.image_size}, ${dataset.image_size}]
       height: ${dataset.image_size}
       width: ${dataset.image_size}
       w2h_ratio: 1.0
