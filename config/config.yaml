@@ -1,32 +1,15 @@
-arch:
-  model: unet
-  criterion: cross_entropy
-  optimizer: adam
+model: unet
+criterion: MixedLoss
+optimizer: Adam
 
 hyperparams:
-  batch_size:
-    train: 32
-    val: 32
+  batch_size: {train: 32, val: 32}
   lr: 3e-4
   num_epochs: 100
 
-scores:
-  - loss
-  - iou
-  - dice
-  - acc
-  - prec
+scores: [loss, iou, dice, acc, prec]
 
-dataset:
-  name: MoNuSeg_nitk
-  root: /Users/Russel/myProjects/histovision/histovision/datasets/MoNuSeg_nitk/
-  image_glob: "*.png"
-  image_size: 256
-  class_dict:
-    "0": 0
-    "1": 255
-  in_channels: 3
-  num_classes: 2
+dataset: MoNuSeg_nitk
 
 augmentations:
   common:

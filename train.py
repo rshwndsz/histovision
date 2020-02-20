@@ -20,7 +20,7 @@ from histovision.trainers.binarytrainer import BinaryTrainer as Trainer
 _HERE = os.path.dirname(__file__)
 
 
-@hydra.main(config_path="config.yaml")
+@hydra.main(config_path="config/config.yaml")
 def train(cfg):
     # Create root logger
     logger = log.setup_logger('root')
