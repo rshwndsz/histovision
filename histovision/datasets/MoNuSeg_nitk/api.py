@@ -2,6 +2,7 @@
 from pathlib import Path
 import logging
 # Image Processing
+import numpy as np
 import cv2
 # PyTorch
 import torch
@@ -60,15 +61,16 @@ class SegmentationDataset(Dataset):
         # <<< Note:
         # Mask is supposed to have the same filename as image
         mask_path = Path(self.cfg.dataset.root) / self.phase / "masks" / image_path.name
-        # <<< Note:
-        # Masks should have int values in [0, C-1] where C => Number of classes
-        # Checking the above condition for every mask is inefficient
-        # So it's left to you 🙇
         mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
 
         # Check if mask has been read properly
         if mask.size == 0:
             raise IOError(f"Unable to load mask: {mask_path}")
+
+        # Map pixel intensities to classes
+        for intensity, kclass in self.cfg.dataset.class_dict.items():
+            mask = np.where(mask == int(intensity), float(kclass), mask)
+        mask = mask.astype(np.float32)
 
         # Augment masks and images
         augmented = self.transforms['aug'](image=image, mask=mask)
@@ -141,10 +143,7 @@ class SegmentationDataset(Dataset):
         common_tfs = Compose(common_tfs)
 
         # Mask only transforms
-        # TODO Replace by class dict mapping
-        mask_tfs = Compose([
-            tf.Normalize(mean=0, std=1, always_apply=True)
-        ])
+        mask_tfs = Compose([])
         # Image only transforms
         image_tfs = Compose([
             tf.Normalize(mean=(0.0, 0.0, 0.0), std=(1.0, 1.0, 1.0), always_apply=True)
