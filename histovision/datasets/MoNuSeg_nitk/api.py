@@ -69,7 +69,8 @@ class SegmentationDataset(Dataset):
 
         # Map pixel intensities to classes
         for intensity, kclass in self.cfg.dataset.class_dict.items():
-            mask = np.where(mask == int(intensity), int(kclass), mask)
+            mask = np.where(mask == int(intensity), float(kclass), mask)
+        mask = mask.astype(np.float32)
 
         # Augment masks and images
         augmented = self.transforms['aug'](image=image, mask=mask)

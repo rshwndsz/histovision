@@ -28,9 +28,7 @@ augmentations:
     ElasticTransform:
       p: 0.5
     RandomSizedCrop:
-      min_max_height:
-        - '${dataset.image_size}'
-        - '${dataset.image_size}'
+      min_max_height: [256, 256]
       height: ${dataset.image_size}
       width: ${dataset.image_size}
       w2h_ratio: 1.0
@@ -43,12 +41,7 @@ augmentations:
       std: [1.0, 1.0, 1.0]
       always_apply: true
 
-  # TODO Replace with class_dict
   mask_only:
-    Normalize:
-      mean: 0.0
-      std: 1.0
-      always_apply: true
 
   final:
     - ToTensorV2
