@@ -62,7 +62,7 @@ class SegmentationDataset(Dataset):
 
         # <<< Note:
         # Mask is supposed to have the same filename as image
-        mask_path = Path(self.cfg.dataset.root) / self.phase / self.cfg.dataset.masks_dir / image_path.name
+        mask_path = Path(self.cfg.dataset.root) / self.phase / self.cfg.dataset.mask_dir / image_path.name
         mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
 
         # Check if mask has been read properly

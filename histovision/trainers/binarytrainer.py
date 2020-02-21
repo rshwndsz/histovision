@@ -11,9 +11,9 @@ from tqdm import tqdm
 from hydra.utils import get_original_cwd
 # Local
 from histovision.trainers import BaseTrainer
-from histovision.metrics import AverageMeter
+from histovision.shared.meter import AverageMeter
 from histovision.losses import MixedLoss
-from histovision.datasets.MoNuSeg_nitk.api import provider
+from histovision.datasets.segdataset import provider
 
 # Get root logger
 logger = logging.getLogger('root')
