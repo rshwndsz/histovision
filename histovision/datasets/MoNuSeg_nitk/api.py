@@ -73,7 +73,7 @@ class SegmentationDataset(Dataset):
         mask = mask.astype(np.float32)
 
         # Augment masks and images
-        augmented = self.transforms['aug'](image=image, mask=mask)
+        augmented = self.transforms['common'](image=image, mask=mask)
         new_image = self.transforms['img_only'](image=augmented['image'])
         new_mask = self.transforms['mask_only'](image=augmented['mask'])
         aug_tensors = self.transforms['final'](image=new_image['image'], mask=new_mask['image'])
@@ -108,57 +108,27 @@ class SegmentationDataset(Dataset):
         transforms: dict[str, albumentations.core.composition.Compose]
             Composed list of transforms
         """
-        # Constants from args
-        image_size = (cfg.dataset.image_size, cfg.dataset.image_size)
-        # Transforms for both images & masks
-        common_tfs = []
-
-        if phase == "train":
-            # Data augmentation for training only
-            common_tfs.extend([
-                tf.ShiftScaleRotate(
-                    shift_limit=0,
-                    scale_limit=0.1,
-                    rotate_limit=15,
-                    p=0.5),
-                tf.Flip(p=0.5),
-                tf.RandomRotate90(p=0.5),
-            ])
-            # Exotic Augmentations for train only
-            common_tfs.extend([
-                tf.RandomBrightnessContrast(p=0.5),
-                tf.ElasticTransform(p=0.5),
-                tf.MultiplicativeNoise(multiplier=(0.5, 1.5),
-                                       per_channel=True, p=0.2),
-            ])
-        # Crop all images & masks to provided size
-        common_tfs.extend([
-            tf.RandomSizedCrop(min_max_height=image_size,
-                               height=image_size[0],
-                               width=image_size[1],
-                               w2h_ratio=1.0,
-                               interpolation=cv2.INTER_LINEAR,
-                               p=1.0),
-        ])
-        common_tfs = Compose(common_tfs)
-
-        # Mask only transforms
-        mask_tfs = Compose([])
-        # Image only transforms
-        image_tfs = Compose([
-            tf.Normalize(mean=(0.0, 0.0, 0.0), std=(1.0, 1.0, 1.0), always_apply=True)
-        ])
-        # Image to tensor
-        final_tfs = Compose([
-            ToTensorV2()
-        ])
-
         transforms = {
-            'aug': common_tfs,
-            'img_only': image_tfs,
-            'mask_only': mask_tfs,
-            'final': final_tfs
+            'common': [],       # Common for both image & mask
+            'img_only': [],     # Image only
+            'mask_only': [],    # Mask only
+            'final': []         # Tfs applied after previous 3, Must include ToTensorV2
         }
+        # Collect transforms from config file
+        for tf_type in cfg.augmentations[phase].keys():
+            if cfg.augmentations[phase][tf_type] is None:
+                continue
+            for aug, params in cfg.augmentations[phase][tf_type].items():
+                if aug == 'ToTensorV2':
+                    transforms[tf_type].append(ToTensorV2())
+                elif params is None:
+                    transforms[tf_type].append(tf.__dict__[aug]())
+                else:
+                    transforms[tf_type].append(tf.__dict__[aug](**params))
+
+        # Compose transforms
+        transforms = dict((k, Compose(v)) for k, v in transforms.items())
+
         return transforms
 
 
