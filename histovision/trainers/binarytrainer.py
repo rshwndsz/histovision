@@ -9,15 +9,14 @@ import torch.optim as optim
 from tqdm import tqdm
 # Local
 from histovision.shared.storage import Meter
-# TODO Read loss from config
 from histovision.losses import MixedLoss
-# TODO Read dataset from config
 from histovision.datasets.MoNuSeg_nitk.api import provider
 
 # Get root logger
 logger = logging.getLogger('root')
 
 
+# TODO Extract out into baseclass
 class BinaryTrainer(object):
     """An object to encompass all training and validation
 
@@ -54,15 +53,12 @@ class BinaryTrainer(object):
         # Save config
         self.cfg = cfg
 
-        # TODO Read model from config
         # Model, loss, optimizer & scheduler
         self.net = model
         self.net = self.net.to(self.cfg.device)
         self.criterion = MixedLoss(9.0, 4.0)
-        # TODO Read optimizer from config
         self.optimizer = optim.Adam(self.net.parameters(),
                                     lr=self.cfg.hyperparams.lr)
-        # TODO Read scheduler from config
         self.scheduler = ReduceLROnPlateau(self.optimizer, mode="min",
                                            patience=3, verbose=True,
                                            cooldown=0, min_lr=3e-6)

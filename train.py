@@ -22,11 +22,11 @@ def train(cfg):
     logger = logging.getLogger('root')
     # Validate configuration
     cfg = validate_config(cfg)
-    # Log resolved configurations
-    logger.info(f"\n==CONFIG==\n{cfg.pretty(resolve=True)}")
 
+    # Set constants based on config
     # Faster convolutions at the expense of memory
     cudnn.benchmark = cfg.trainer.cudnn_benchmark
+
     # Get trainer
     model_trainer = Trainer(model, cfg)
 
