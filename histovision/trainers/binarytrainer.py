@@ -9,10 +9,10 @@ import torch.optim as optim
 from tqdm import tqdm
 # For original working directory
 from hydra.utils import get_original_cwd
+import hydra.utils
 # Local
 from histovision.trainers import BaseTrainer
 from histovision.shared.meter import AverageMeter
-from histovision.losses import MixedLoss
 from histovision.datasets.segdataset import provider
 
 # Get root logger
@@ -42,13 +42,11 @@ class BinaryTrainer(BaseTrainer):
     meter : AverageMeter
         Object to store loss & scores
     """
-    def __init__(self, model, cfg):
+    def __init__(self, cfg):
         """Initialize a Trainer object
 
         Parameters
         ----------
-        model : torch.nn.Module
-            PyTorch model of your NN
         cfg : :obj:
             CLI arguments
         """
@@ -57,14 +55,14 @@ class BinaryTrainer(BaseTrainer):
         self.cfg = cfg
 
         # Model, loss, optimizer & scheduler
-        self.net = model
-        self.net = self.net.to(self.cfg.device)
-        self.criterion = MixedLoss(9.0, 4.0)
-        self.optimizer = optim.Adam(self.net.parameters(),
-                                    lr=self.cfg.hyperparams.lr)
-        self.scheduler = ReduceLROnPlateau(self.optimizer, mode="min",
-                                           patience=3, verbose=True,
-                                           cooldown=0, min_lr=3e-6)
+        self.net = hydra.utils.instantiate(self.cfg.model).to(self.cfg.device)
+        self.criterion = hydra.utils.instantiate(self.cfg.criterion)
+        # self.optimizer = optim.Adam(self.net.parameters(), lr=self.cfg.hyperparams.lr)
+        self.optimizer = optim.__dict__[self.cfg.optimizer](self.net.parameters(),
+                                                            lr=self.cfg.hyperparams.lr)
+        self.scheduler = optim.lr_scheduler.__dict__[self.cfg.scheduler](
+            self.optimizer, mode="min", patience=3,
+            verbose=True, cooldown=0, min_lr=3e-6)
 
         # Get loaders for training and validation
         self.dataloaders = {
@@ -189,11 +187,11 @@ class BinaryTrainer(BaseTrainer):
         self.meter.on_train_begin()
 
         # Train for `num_epochs` from `start_epoch`
-        for epoch in range(self.cfg.trainer.start_epoch, self.cfg.trainer.num_epochs + 1):
+        for epoch in range(self.cfg.training.start_epoch, self.cfg.trainer.num_epochs + 1):
             # Train model for 1 epoch
             self.iterate(epoch, "train")
             # Validate model after `val_freq` epochs
-            if epoch % self.cfg.trainer.val_freq == 0:
+            if epoch % self.cfg.training.val_freq == 0:
                 self.validate(epoch)
 
         # ===ON_TRAIN_END===

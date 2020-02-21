@@ -12,7 +12,6 @@ import torch.backends.cudnn as cudnn
 # Advanced configurations
 import hydra
 # Local
-from histovision.models.unet import model
 from histovision.trainers.binarytrainer import BinaryTrainer as Trainer
 
 
@@ -25,10 +24,10 @@ def train(cfg):
 
     # Set constants based on config
     # Faster convolutions at the expense of memory
-    cudnn.benchmark = cfg.trainer.cudnn_benchmark
+    cudnn.benchmark = cfg.training.cudnn_benchmark
 
     # Get trainer
-    model_trainer = Trainer(model, cfg)
+    model_trainer = Trainer(cfg)
 
     # `try-except` to save model before exiting if ^C was pressed
     try:

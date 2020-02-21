@@ -10,16 +10,18 @@ defaults:
   # Custom output for --help
   - hydra/help: custom
 
-# TODO Read dataset from config
 dataset: ???  # Specify at runtime
-# TODO Read model from config
 model: ???    # Specify at runtime
-# TODO Read loss from config
-criterion: MixedLoss
-# TODO Read optimizer from config
+criterion:
+  class: histovision.losses.MixedLoss
+  params:
+    alpha: 9.0
+    gamma: 1.0
 optimizer: Adam
-# TODO Read scheduler from config
 scheduler: ReduceLROnPlateau
+# TODO Read provider & trainer from config
+provider: histovision.datasets.segdataset.provider
+trainer: histovision.trainers.BinaryTrainer
 
 hyperparams:
   batch_size: {train: 32, val: 32}
@@ -30,7 +32,7 @@ dataloader:
   pin_memory: True
   shuffle: True
 
-trainer:
+training:
   start_epoch: 1
   num_epochs: 100
   val_freq: 4
