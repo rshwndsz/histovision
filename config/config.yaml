@@ -6,7 +6,7 @@ debugging: True
 defaults:
   # Custom logging
   - hydra/job_logging: custom
-  - hydra/hydra_logging: disabled
+  - hydra/hydra_logging: default
   # Custom output for --help
   - hydra/help: custom
 
@@ -24,7 +24,21 @@ scheduler: ReduceLROnPlateau
 hyperparams:
   batch_size: {train: 32, val: 32}
   lr: 3e-4
+
+dataloader:
+  num_workers: 4
+  pin_memory: True
+  shuffle: True
+
+trainer:
+  start_epoch: 1
   num_epochs: 100
+  val_freq: 4
+  early_stop:
+    patience: 6
+  cudnn_benchmark: true
+
+device: cuda
 
 scores: [loss, iou, dice, acc, prec]
 
@@ -83,18 +97,6 @@ augmentations:
 
     final:
       ToTensorV2:
-
-dataloader:
-  num_workers: 4
-  pin_memory: True
-  shuffle: True
-
-trainer:
-  start_epoch: 0
-  val_freq: 4
-  cudnn_benchmark: true
-
-device: cuda
 
 final_weights_path: checkpoints/final_weights.pth
 best_weights_path: checkpoints/best_weights.pth

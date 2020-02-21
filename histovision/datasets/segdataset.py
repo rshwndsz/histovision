@@ -1,6 +1,8 @@
 # Python STL
 from pathlib import Path
 import logging
+# For original cwd
+from hydra.utils import get_original_cwd
 # Image Processing
 import numpy as np
 import cv2
@@ -37,14 +39,14 @@ class SegmentationDataset(Dataset):
         self.transforms = SegmentationDataset.get_transforms(self.phase, self.cfg)
 
         # Get absolute paths of all images in {root}/{phase}/imgs
-        _path_to_imgs = Path(self.cfg.dataset.root) / self.phase / "imgs"
+        _path_to_imgs = Path(self.cfg.dataset.root) / self.phase / cfg.dataset.image_dir
         self.image_paths = sorted(list(_path_to_imgs.glob(self.cfg.dataset.image_glob)))
 
         # Check if all images have been read properly
         if len(self.image_paths) == 0:
             raise IOError(f"No images found in {_path_to_imgs}")
         else:
-            logger.info(f"Found {len(self.image_paths)} images in {_path_to_imgs}")
+            logger.info(f"Found {len(self.image_paths)} images in {_path_to_imgs.relative_to(get_original_cwd())}")
 
     def __getitem__(self, idx):
         # Get path to image
@@ -60,7 +62,7 @@ class SegmentationDataset(Dataset):
 
         # <<< Note:
         # Mask is supposed to have the same filename as image
-        mask_path = Path(self.cfg.dataset.root) / self.phase / "masks" / image_path.name
+        mask_path = Path(self.cfg.dataset.root) / self.phase / self.cfg.dataset.mask_dir / image_path.name
         mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
 
         # Check if mask has been read properly
@@ -90,7 +92,6 @@ class SegmentationDataset(Dataset):
     def __len__(self):
         return len(self.image_paths)
 
-    # TODO Read transforms from config
     @staticmethod
     def get_transforms(phase, cfg):
         """Get composed albumentations augmentations
