@@ -1,6 +1,8 @@
 dataset:
   name: MoNuSeg_nitk
   root: /Users/Russel/myProjects/histovision/histovision/datasets/MoNuSeg_nitk/
+  image_dir: "imgs"
+  mask_dir: "masks"
   image_glob: "*.png"
   image_size: 256
   class_dict:
