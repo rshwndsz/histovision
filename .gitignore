@@ -133,13 +133,9 @@ dmypy.json
 .DS_Store
 
 # Datasets
-*/data/**/*.png
-*/data/**/*.jpg
-*/data/**/*.xml
-*/data/**/*.tif
-*/data/**/*.svs
-*/data/**/*.tiff
-*/data/**/*.json
+*/data/**/*
+!*/data/**/README.md
+!*/data/**/.gitkeep
 
 # IDE config files
 .vscode/
