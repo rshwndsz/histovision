@@ -172,7 +172,7 @@ class BinaryTrainer(object):
         # <<< Change: Hardcoded starting epoch
         for epoch in range(1, self.cfg.hyperparams.num_epochs + 1):
             # Update start_epoch
-            self.cfg.start_epoch = epoch
+            self.cfg.trainer.start_epoch = epoch
 
             # Train model for 1 epoch
             self.iterate(epoch, "train")
@@ -186,7 +186,7 @@ class BinaryTrainer(object):
             }
 
             # Validate model for `val_freq` epochs
-            if epoch % self.cfg.val_freq == 0:
+            if epoch % self.cfg.trainer.val_freq == 0:
                 val_loss = self.iterate(epoch, "val")
 
                 # Step the scheduler based on validation loss
