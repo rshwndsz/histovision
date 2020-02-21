@@ -11,11 +11,35 @@ import histovision.metrics as metrics
 logger = logging.getLogger('root')
 
 
-class Meter(object):
+class BaseMeter(object):
+    def __init__(self):
+        pass
+
+    def on_train_begin(self, *args, **kwargs):
+        pass
+
+    def on_epoch_begin(self, *args, **kwargs):
+        pass
+
+    def on_batch_begin(self, *args, **kwargs):
+        pass
+
+    def on_batch_close(self, *args, **kwargs):
+        pass
+
+    def on_epoch_close(self, *args, **kwargs):
+        pass
+
+    def on_train_close(self, *args, **kwargs):
+        pass
+
+
+class AverageMeter(BaseMeter):
     """Object to log & hold values during training"""
     def __init__(self,
                  phases=('train', 'val'),
                  scores=('loss', 'iou')):
+        super(AverageMeter, self).__init__()
         self.phases = phases
         self.current_phase = phases[0]
         self.scores = scores
