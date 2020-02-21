@@ -7,8 +7,11 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.optim as optim
 # Progress bars
 from tqdm import tqdm
+# For original working directory
+from hydra.utils import get_original_cwd
 # Local
-from histovision.shared.storage import Meter
+from histovision.trainers import BaseTrainer
+from histovision.metrics import AverageMeter
 from histovision.losses import MixedLoss
 from histovision.datasets.MoNuSeg_nitk.api import provider
 
@@ -16,8 +19,7 @@ from histovision.datasets.MoNuSeg_nitk.api import provider
 logger = logging.getLogger('root')
 
 
-# TODO Extract out into baseclass
-class BinaryTrainer(object):
+class BinaryTrainer(BaseTrainer):
     """An object to encompass all training and validation
 
     Training loop, validation loop, logging, checkpoints are all
@@ -37,7 +39,7 @@ class BinaryTrainer(object):
         Dataloaders for each phase
     best_loss : float
         Best validation loss
-    meter : Meter
+    meter : AverageMeter
         Object to store loss & scores
     """
     def __init__(self, model, cfg):
@@ -50,6 +52,7 @@ class BinaryTrainer(object):
         cfg : :obj:
             CLI arguments
         """
+        super(BinaryTrainer, self).__init__()
         # Save config
         self.cfg = cfg
 
@@ -74,7 +77,7 @@ class BinaryTrainer(object):
 
         # Initialize losses & scores
         self.best_loss = float("inf")
-        self.meter = Meter(scores=self.cfg.scores)
+        self.meter = AverageMeter(scores=self.cfg.scores)
 
     def forward(self, images, targets):
         """Forward pass
@@ -159,48 +162,39 @@ class BinaryTrainer(object):
         # Return average loss from the criterion for this epoch
         return self.meter.store['loss'][phase][-1]
 
-    def start(self):
-        """Start the loops!"""
-
-        # ===ON_TRAIN_BEGIN===
-        self.meter.on_train_begin()
-
-        # <<< Change: Hardcoded starting epoch
-        for epoch in range(1, self.cfg.hyperparams.num_epochs + 1):
-            # Update start_epoch
-            self.cfg.trainer.start_epoch = epoch
-
-            # Train model for 1 epoch
-            self.iterate(epoch, "train")
-
-            # Construct the state for a possible save later
+    def validate(self, epoch):
+        # Go through 1 validation epoch & get validation loss
+        val_loss = self.iterate(epoch, "val")
+        # Step the scheduler based on validation loss
+        self.scheduler.step(val_loss)
+        # Save model if val loss is lesser than anything seen before
+        if val_loss < self.best_loss:
+            # Construct the state dict
             state = {
                 "epoch": epoch,
                 "best_loss": self.best_loss,
                 "state_dict": self.net.state_dict(),
                 "optimizer": self.optimizer.state_dict(),
             }
+            logger.info(f"**** New optimal found, saving state in "
+                        f"{Path(self.cfg.best_weights_path).relative_to(get_original_cwd())} ****")
+            state["best_loss"] = self.best_loss = val_loss
+            Path(self.cfg.best_weights_path).parent.mkdir(
+                parents=True, exist_ok=True)
+            torch.save(state, self.cfg.best_weights_path)
 
-            # Validate model for `val_freq` epochs
+    def start(self):
+        """Start the loops!"""
+        # ===ON_TRAIN_BEGIN===
+        self.meter.on_train_begin()
+
+        # Train for `num_epochs` from `start_epoch`
+        for epoch in range(self.cfg.trainer.start_epoch, self.cfg.trainer.num_epochs + 1):
+            # Train model for 1 epoch
+            self.iterate(epoch, "train")
+            # Validate model after `val_freq` epochs
             if epoch % self.cfg.trainer.val_freq == 0:
-                val_loss = self.iterate(epoch, "val")
-
-                # Step the scheduler based on validation loss
-                self.scheduler.step(val_loss)
-
-                # TODO Add EarlyStopping
-
-                # Save model if val loss is lesser than anything seen before
-                if val_loss < self.best_loss:
-                    logger.info(f"**** New optimal found, saving state in "
-                                f"{self.cfg.best_weights_path} ****")
-                    state["best_loss"] = self.best_loss = val_loss
-                    Path(self.cfg.best_weights_path).parent.mkdir(
-                        parents=True, exist_ok=True)
-                    torch.save(state, self.cfg.best_weights_path)
-
-            # Print newline after every epoch
-            print()
+                self.validate(epoch)
 
         # ===ON_TRAIN_END===
         self.meter.on_train_close()
