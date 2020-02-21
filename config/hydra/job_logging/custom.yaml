@@ -1,0 +1,28 @@
+hydra:
+  job_logging:
+    version: 1
+    disable_existing_loggers: False
+
+    formatters:
+      format_for_console:
+        format: '%(asctime)s - %(levelname)-8s - %(message)s'
+        datefmt: '%H:%M:%S'
+      format_for_file:
+        format: '%(asctime)s :: %(levelname)s :: %(funcName)-15s in %(filename)-10s (l:%(lineno)-4s) :: %(message)s'
+        datefmt: '%Y-%m-%d %H:%M:%S'
+
+    handlers:
+      console:
+        class: logging.StreamHandler
+        formatter: format_for_console
+        stream: ext://sys.stdout
+      file:
+        class: logging.handlers.RotatingFileHandler
+        formatter: format_for_file
+        filename: ${hydra.job.name}.log
+        maxBytes: 20000
+        backupCount: 5
+
+    root:
+      level: INFO
+      handlers: [console, file]

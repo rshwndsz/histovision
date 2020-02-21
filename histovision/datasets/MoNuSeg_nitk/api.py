@@ -187,9 +187,9 @@ def provider(phase, cfg):
     dataloader = DataLoader(
         image_dataset,
         batch_size=cfg.hyperparams.batch_size[phase],
-        num_workers=cfg.num_workers,
-        pin_memory=cfg.pin_memory,
-        shuffle=cfg.shuffle
+        num_workers=cfg.dataloader.num_workers,
+        pin_memory=cfg.dataloader.pin_memory,
+        shuffle=cfg.dataloader.shuffle
     )
 
     return dataloader

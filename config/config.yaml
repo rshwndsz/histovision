@@ -1,7 +1,16 @@
-#defaults:
-#  - model: unet
-#  - dataset: MoNuSeg_nitk
+# Histovision version
+version: 0.1.0
+# Don't create checkpoint files
+debugging: True
 
+defaults:
+  - hydra/job_logging: custom
+  - hydra/hydra_logging: disabled
+  # Custom output for --help
+  - hydra/help: custom
+
+dataset: ???  # Specify at runtime
+model: ???    # Specify at runtime
 criterion: MixedLoss
 optimizer: Adam
 
@@ -13,47 +22,72 @@ hyperparams:
 scores: [loss, iou, dice, acc, prec]
 
 augmentations:
-  common:
-    ShiftScaleRotate:
-      shift_limit: 0
-      scale_limit: 0
-      rotate_limit: 15
-      p: 0.5
-    Flip:
-      p: 0.5
-    RandomRotate90:
-      p: 0.5
-    RandomBrightnessContrast:
-      p: 0.5
-    ElasticTransform:
-      p: 0.5
-    RandomSizedCrop:
-      min_max_height: [256, 256]
-      height: ${dataset.image_size}
-      width: ${dataset.image_size}
-      w2h_ratio: 1.0
-      interpolation: 1 # cv2.INTER_LINEAR
-      p: 1.0
+  train:
+    common:
+      ShiftScaleRotate:
+        shift_limit: 0
+        scale_limit: 0
+        rotate_limit: 15
+        p: 0.5
+      Flip:
+        p: 0.5
+      RandomRotate90:
+        p: 0.5
+      RandomBrightnessContrast:
+        p: 0.5
+      ElasticTransform:
+        p: 0.5
+      RandomSizedCrop:
+        min_max_height: [256, 256]
+        height: ${dataset.image_size}
+        width: ${dataset.image_size}
+        w2h_ratio: 1.0
+        interpolation: 1 # cv2.INTER_LINEAR
+        p: 1.0
 
-  image_only:
-    Normalize:
-      mean: [0.0, 0.0, 0.0]
-      std: [1.0, 1.0, 1.0]
-      always_apply: true
+    image_only:
+      Normalize:
+        mean: [0.0, 0.0, 0.0]
+        std: [1.0, 1.0, 1.0]
+        always_apply: true
 
-  mask_only:
+    mask_only:
 
-  final:
-    - ToTensorV2
+    final:
+      - ToTensorV2
 
+  val:
+    common:
+      RandomSizedCrop:
+        min_max_height: [256, 256]
+        height: ${dataset.image_size}
+        width: ${dataset.image_size}
+        w2h_ratio: 1.0
+        interpolation: 1 # cv2.INTER_LINEAR
+        p: 1.0
 
-start_epoch: 0
-num_workers: 4
-pin_memory: True
-shuffle: True
-val_freq: 4
+    image_only:
+      Normalize:
+        mean: [0.0, 0.0, 0.0]
+        std: [1.0, 1.0, 1.0]
+        always_apply: true
+
+    mask_only:
+
+    final:
+      - ToTensorV2
+
+dataloader:
+  num_workers: 4
+  pin_memory: True
+  shuffle: True
+
+trainer:
+  start_epoch: 0
+  val_freq: 4
+  cudnn_benchmark: true
+
 device: cuda
-final_weights_path: /Users/Russel/myProjects/histovision/checkpoints/final_weights.pth
-best_weights_path: /Users/Russel/myProjects/histovision/checkpoints/best_weights.pth
 
-cudnn_benchmark: true
+final_weights_path: checkpoints/final_weights.pth
+best_weights_path: checkpoints/best_weights.pth

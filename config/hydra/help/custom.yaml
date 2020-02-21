@@ -1,0 +1,19 @@
+hydra:
+  help:
+    app_name: Histovision
+
+    header: |
+      ${hydra.help.app_name}'s configuration system is powered by facebookresearch/hydra.
+
+    footer: |
+      Use the flag --hydra-help to view Hydra specific help
+
+    template: |
+      ${hydra.help.header}
+
+      == CONFIGURATION ==
+      Override anything in the config and see ✨ (foo.bar=value)
+
+      $CONFIG
+
+      ${hydra.help.footer}

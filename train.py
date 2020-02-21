@@ -1,43 +1,44 @@
 # Imports
 # Python STL
-import os
+import logging
 from pathlib import Path
 import sys
-# Data Science
+# Plotting
+# TODO Replace with tensorboard or visdom
 import matplotlib.pyplot as plt
 # PyTorch
 import torch
 import torch.backends.cudnn as cudnn
-# Hydra
+# Advanced configurations
 import hydra
 # Local
-from histovision.shared import log
 from histovision.models.unet import model
 from histovision.trainers.binarytrainer import BinaryTrainer as Trainer
-
-# Constants
-# Path to current directory `pwd`
-_HERE = os.path.dirname(__file__)
 
 
 @hydra.main(config_path="config/config.yaml")
 def train(cfg):
-    # Create root logger
-    logger = log.setup_logger('root')
+    # Get root logger
+    logger = logging.getLogger('root')
     # Validate configuration
     cfg = validate_config(cfg)
     # Log resolved configurations
-    logger.info(f"\n{cfg.pretty(resolve=True)}")
+    logger.info(f"\n==CONFIG==\n{cfg.pretty(resolve=True)}")
+
     # Faster convolutions at the expense of memory
-    cudnn.benchmark = cfg.cudnn_benchmark
+    cudnn.benchmark = cfg.trainer.cudnn_benchmark
     # Get trainer
     model_trainer = Trainer(model, cfg)
+
     # `try-except` to save model before exiting if ^C was pressed
     try:
         # Start training + validation
         model_trainer.start()
     except KeyboardInterrupt or SystemExit:
         logger.info("Exit requested during train-val")
+        # Don't save state in debugging mode
+        if cfg.debugging:
+            sys.exit(0)
         # Collect state
         state = {
             "epoch": model_trainer.cfg.start_epoch,
@@ -54,7 +55,7 @@ def train(cfg):
         # Exit
         sys.exit(0)
 
-    # Helper function to plot scores
+    # Helper function to plot scores at the end of training
     def metric_plot(scores, name):
         plt.figure(figsize=(15, 5))
         # Plot training scores
