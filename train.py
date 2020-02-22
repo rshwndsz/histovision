@@ -4,7 +4,6 @@ import logging
 from pathlib import Path
 import sys
 # Plotting
-# TODO Replace with tensorboard or visdom
 import matplotlib.pyplot as plt
 # PyTorch
 import torch
@@ -12,13 +11,15 @@ import torch.backends.cudnn as cudnn
 # Advanced configurations
 import hydra
 # Local
-from histovision.trainers.binarytrainer import BinaryTrainer as Trainer
+# For cfg.trainer
+import histovision.trainers
+
+# Get root logger
+logger = logging.getLogger('root')
 
 
 @hydra.main(config_path="config/config.yaml")
 def train(cfg):
-    # Get root logger
-    logger = logging.getLogger('root')
     # Validate configuration
     cfg = validate_config(cfg)
 
@@ -26,8 +27,8 @@ def train(cfg):
     # Faster convolutions at the expense of memory
     cudnn.benchmark = cfg.training.cudnn_benchmark
 
-    # Get trainer
-    model_trainer = Trainer(cfg)
+    # Get trainer from config
+    model_trainer = eval(cfg.trainer)(cfg)
 
     # `try-except` to save model before exiting if ^C was pressed
     try:
@@ -55,6 +56,7 @@ def train(cfg):
         sys.exit(0)
 
     # Helper function to plot scores at the end of training
+    # TODO Replace with tensorboard or visdom
     def metric_plot(scores, name):
         plt.figure(figsize=(15, 5))
         # Plot training scores

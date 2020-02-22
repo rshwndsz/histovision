@@ -3,7 +3,6 @@ from pathlib import Path
 import logging
 # PyTorch
 import torch
-from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.optim as optim
 # Progress bars
 from tqdm import tqdm
@@ -13,7 +12,8 @@ import hydra.utils
 # Local
 from histovision.trainers import BaseTrainer
 from histovision.shared.meter import AverageMeter
-from histovision.datasets.segdataset import provider
+# For cfg.provider
+import histovision.datasets
 
 # Get root logger
 logger = logging.getLogger('root')
@@ -57,16 +57,14 @@ class BinaryTrainer(BaseTrainer):
         # Model, loss, optimizer & scheduler
         self.net = hydra.utils.instantiate(self.cfg.model).to(self.cfg.device)
         self.criterion = hydra.utils.instantiate(self.cfg.criterion)
-        # self.optimizer = optim.Adam(self.net.parameters(), lr=self.cfg.hyperparams.lr)
         self.optimizer = optim.__dict__[self.cfg.optimizer](self.net.parameters(),
                                                             lr=self.cfg.hyperparams.lr)
-        self.scheduler = optim.lr_scheduler.__dict__[self.cfg.scheduler](
-            self.optimizer, mode="min", patience=3,
-            verbose=True, cooldown=0, min_lr=3e-6)
+        self.scheduler = optim.lr_scheduler.__dict__[self.cfg.scheduler['class']](
+            self.optimizer, **self.cfg.scheduler.params)
 
         # Get loaders for training and validation
         self.dataloaders = {
-            phase: provider(
+            phase: eval(cfg.provider)(
                 phase=phase,
                 cfg=cfg
             )

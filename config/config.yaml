@@ -6,32 +6,45 @@ debugging: True
 defaults:
   # Custom logging
   - hydra/job_logging: custom
-  - hydra/hydra_logging: default
   # Custom output for --help
   - hydra/help: custom
 
-dataset: ???  # Specify at runtime
-model: ???    # Specify at runtime
+dataset: ???  # Required, Specify at runtime
+model: ???    # Required, Specify at runtime
+# Loss function
 criterion:
   class: histovision.losses.MixedLoss
   params:
     alpha: 9.0
     gamma: 1.0
 optimizer: Adam
-scheduler: ReduceLROnPlateau
-# TODO Read provider & trainer from config
+scheduler:
+  class: ReduceLROnPlateau
+  params:
+    # optimizer
+    mode: min
+    patience: 3
+    verbose: True
+    cooldown: 0
+    min_lr: 3e-6
+# Function to get dataloaders: provider(phase, cfg)
 provider: histovision.datasets.segdataset.provider
+# Trainer object: Trainer(cfg)
 trainer: histovision.trainers.BinaryTrainer
 
 hyperparams:
-  batch_size: {train: 32, val: 32}
+  batch_size:
+    train: 32
+    val: 32
   lr: 3e-4
 
+# Parameters for dataloader in provider
 dataloader:
   num_workers: 4
   pin_memory: True
   shuffle: True
 
+# Parameters for training loop
 training:
   start_epoch: 1
   num_epochs: 100
@@ -44,6 +57,7 @@ device: cuda
 
 scores: [loss, iou, dice, acc, prec]
 
+# Data augmentations
 augmentations:
   train:
     common:
@@ -100,5 +114,6 @@ augmentations:
     final:
       ToTensorV2:
 
+# Some important paths relative to outputs/date/time
 final_weights_path: checkpoints/final_weights.pth
 best_weights_path: checkpoints/best_weights.pth
