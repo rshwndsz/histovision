@@ -1,0 +1,15 @@
+# DeepLabV3
+# Paper: https://arxiv.org/abs/1706.05587
+model:
+  class: segmentation_models_pytorch.DeepLabV3
+  params:
+    encoder_name: "resnet34"
+    encoder_depth: 5
+    encoder_weights: NULL
+    decoder_channels: 256
+    psp_dropout: 0.2
+    in_channels: 3
+    classes: 1
+    activation: NULL
+    upsampling: 8
+    aux_params: NULL
