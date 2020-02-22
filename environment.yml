@@ -6,6 +6,5 @@ dependencies:
   - numpy
   - matplotlib
   - Pip:
-      - coloredlogs
       - segmentation-models-pytorch
       - hydra-core
