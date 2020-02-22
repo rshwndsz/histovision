@@ -180,7 +180,12 @@ class BinaryTrainer(BaseTrainer):
             state["best_loss"] = self.best_loss = val_loss
             Path(self.cfg.best_weights_path).parent.mkdir(
                 parents=True, exist_ok=True)
-            torch.save(state, self.cfg.best_weights_path)
+            try:
+                torch.save(state, self.cfg.best_weights_path)
+            except:
+                logger.error(f"Could not save in {self.cfg.best_weights_path}", exc_info=True)
+            else:
+                logger.info("Saved 🎉")
 
     def start(self):
         """Start the loops!"""

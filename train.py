@@ -51,8 +51,12 @@ def train(cfg):
         # Create file with parent directories if it doesn't exist
         Path(cfg.final_weights_path).parent.mkdir(parents=True, exist_ok=True)
         # Save state
-        torch.save(state, cfg.final_weights_path)
-        logger.info("Saved 🎉")
+        try:
+            torch.save(state, cfg.final_weights_path)
+        except:
+            logger.error(f"Could not save in {cfg.final_weights_path}", exc_info=True)
+        else:
+            logger.info("Saved 🎉")
         # Exit
         sys.exit(0)
 
