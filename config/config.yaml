@@ -31,6 +31,8 @@ scheduler:
 provider: histovision.datasets.segdataset.provider
 # Trainer object: Trainer(cfg)
 trainer: histovision.trainers.BinaryTrainer
+# Testing object: Tester(cfg)
+tester: histovision.testers.BinaryTester
 
 hyperparams:
   batch_size:
@@ -54,6 +56,8 @@ training:
   cudnn_benchmark: true
 
 testing:
+  # Working directory to run testing
+  cwd: ???    # Specify at runtime
 
 device: cuda
 
