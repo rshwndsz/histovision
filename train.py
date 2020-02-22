@@ -10,11 +10,8 @@ import torch
 import torch.backends.cudnn as cudnn
 # Advanced configurations
 import hydra
-# For segmentation models
-import segmentation_models_pytorch
-import histovision.models
 # Local
-# For cfg.trainer
+import histovision.models
 import histovision.trainers
 
 # Get root logger

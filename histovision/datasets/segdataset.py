@@ -26,7 +26,6 @@ class SegmentationDataset(Dataset):
         ----------
         phase : str
             Phase of learning
-            In ['train', 'val']
         cfg
             User specified configuration
         """
