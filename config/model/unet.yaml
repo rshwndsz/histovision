@@ -1,5 +1,5 @@
 model:
-  class: histovision.models.unet.Unet
+  class: segmentation_models_pytorch.Unet
   params:
     encoder_name: "resnet34"
     encoder_depth: 5

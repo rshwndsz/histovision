@@ -1,0 +1,5 @@
+# Unet with pyramid pooling layers
+model:
+  class: histovision.models.UnetPPL
+  params:
+    classes: 1
