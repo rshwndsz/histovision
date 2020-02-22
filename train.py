@@ -53,8 +53,8 @@ def train(cfg):
         # Save state
         try:
             torch.save(state, cfg.final_weights_path)
-        except:
-            logger.error(f"Could not save in {cfg.final_weights_path}", exc_info=True)
+        except IOError:
+            logger.warning(f"Could not save in {cfg.final_weights_path}", exc_info=True)
         else:
             logger.info("Saved 🎉")
         # Exit

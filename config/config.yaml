@@ -55,10 +55,6 @@ training:
     patience: 6
   cudnn_benchmark: true
 
-testing:
-  # Working directory to run testing
-  cwd: ???    # Specify at runtime
-
 device: cuda
 
 scores: [loss, iou, dice, acc, prec]

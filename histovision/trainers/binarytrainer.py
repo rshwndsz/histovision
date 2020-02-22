@@ -182,8 +182,8 @@ class BinaryTrainer(BaseTrainer):
                 parents=True, exist_ok=True)
             try:
                 torch.save(state, self.cfg.best_weights_path)
-            except:
-                logger.error(f"Could not save in {self.cfg.best_weights_path}", exc_info=True)
+            except IOError:
+                logger.warning(f"Could not save in {self.cfg.best_weights_path}", exc_info=True)
             else:
                 logger.info("Saved 🎉")
 
