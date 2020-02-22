@@ -5,6 +5,7 @@ dependencies:
   - cudatoolkit=10.0
   - numpy
   - matplotlib
+  - opencv-python
   - Pip:
       - segmentation-models-pytorch
       - hydra-core
