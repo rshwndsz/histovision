@@ -71,6 +71,9 @@ class BinaryTrainer(BaseTrainer):
             for phase in ('train', 'val')
         }
 
+        # current_epoch that can be accessed while saving
+        self.current_epoch = cfg.training.start_epoch
+
         # Initialize losses & scores
         self.best_loss = float("inf")
         self.meter = AverageMeter(scores=self.cfg.scores)
@@ -186,6 +189,7 @@ class BinaryTrainer(BaseTrainer):
 
         # Train for `num_epochs` from `start_epoch`
         for epoch in range(self.cfg.training.start_epoch, self.cfg.trainer.num_epochs + 1):
+            self.current_epoch = epoch
             # Train model for 1 epoch
             self.iterate(epoch, "train")
             # Validate model after `val_freq` epochs

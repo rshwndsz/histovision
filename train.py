@@ -28,28 +28,29 @@ def train(cfg):
     cudnn.benchmark = cfg.training.cudnn_benchmark
 
     # Get trainer from config
-    model_trainer = eval(cfg.trainer)(cfg)
+    trainer = eval(cfg.trainer)(cfg)
 
     # `try-except` to save model before exiting if ^C was pressed
     try:
         # Start training + validation
-        model_trainer.start()
+        trainer.start()
     except KeyboardInterrupt or SystemExit:
         logger.info("Exit requested during train-val")
         # Don't save state in debugging mode
         if cfg.debugging:
+            logger.warning("NOT saving state in DEBUG mode")
             sys.exit(0)
         # Collect state
         state = {
-            "epoch": model_trainer.cfg.start_epoch,
-            "best_loss": model_trainer.best_loss,
-            "state_dict": model_trainer.net.state_dict(),
-            "optimizer": model_trainer.optimizer.state_dict(),
+            "epoch": trainer.current_epoch,
+            "best_loss": trainer.best_loss,
+            "state_dict": trainer.net.state_dict(),
+            "optimizer": trainer.optimizer.state_dict(),
         }
         logger.info("**** Saving state before exiting ****")
-        # Save state if possible
         # Create file with parent directories if it doesn't exist
         Path(cfg.final_weights_path).parent.mkdir(parents=True, exist_ok=True)
+        # Save state
         torch.save(state, cfg.final_weights_path)
         logger.info("Saved 🎉")
         # Exit
@@ -73,7 +74,7 @@ def train(cfg):
         plt.legend()
         plt.show()
 
-    for metric_name, metric_values in model_trainer.meter.store.items():
+    for metric_name, metric_values in trainer.meter.store.items():
         metric_plot(metric_values, metric_name)
 
 
