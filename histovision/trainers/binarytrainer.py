@@ -176,7 +176,7 @@ class BinaryTrainer(BaseTrainer):
                 "optimizer": self.optimizer.state_dict(),
             }
             logger.info(f"**** New optimal found, saving state in "
-                        f"{Path(self.cfg.best_weights_path).relative_to(get_original_cwd())} ****")
+                        f"{Path(self.cfg.best_weights_path)} ****")
             state["best_loss"] = self.best_loss = val_loss
             Path(self.cfg.best_weights_path).parent.mkdir(
                 parents=True, exist_ok=True)
@@ -188,7 +188,7 @@ class BinaryTrainer(BaseTrainer):
         self.meter.on_train_begin()
 
         # Train for `num_epochs` from `start_epoch`
-        for epoch in range(self.cfg.training.start_epoch, self.cfg.trainer.num_epochs + 1):
+        for epoch in range(self.cfg.training.start_epoch, self.cfg.training.num_epochs + 1):
             self.current_epoch = epoch
             # Train model for 1 epoch
             self.iterate(epoch, "train")

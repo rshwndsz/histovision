@@ -46,7 +46,7 @@ class SegmentationDataset(Dataset):
         if len(self.image_paths) == 0:
             raise IOError(f"No images found in {_path_to_imgs}")
         else:
-            logger.info(f"Found {len(self.image_paths)} images in {_path_to_imgs.relative_to(get_original_cwd())}")
+            logger.info(f"Found {len(self.image_paths)} images in {_path_to_imgs}")
 
     def __getitem__(self, idx):
         # Get path to image
