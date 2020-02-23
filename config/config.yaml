@@ -2,6 +2,7 @@
 version: 0.1.0
 # Don't create checkpoint files
 debugging: True
+device: cuda
 
 defaults:
   # Custom logging
@@ -44,7 +45,9 @@ training:
     patience: 6
   cudnn_benchmark: true
 
-device: cuda
+testing:
+  save_predictions: False
+  save_dir: test_preds
 
 scores:
   loss:

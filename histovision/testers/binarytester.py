@@ -5,6 +5,7 @@ from torch import optim
 import matplotlib.pyplot as plt
 import hydra
 from tqdm import tqdm
+import cv2
 
 # Dataset chosen from cfg.dataset
 import histovision.datasets
@@ -38,6 +39,9 @@ class BinaryTester(BaseTester):
             for i, images in tqdm(enumerate(self.dataloader), total=len(self.dataloader)):
                 preds = self.forward(images)
                 display(images, preds)
+                if self.cfg.testing.save_predictions:
+                    cv2.imwrite(self.cfg.testing.save_dir + 'pred_' + i,
+                                preds.numpy())
 
 
 def display(images, preds):
