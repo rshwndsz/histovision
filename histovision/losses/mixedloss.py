@@ -8,13 +8,16 @@ from torch.nn import functional as F
 
 class DiceLoss(nn.Module):
     # See: https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient
-    def forward(self, logits, target, smooth=1e-7):
+    def forward(self, logits, target, log_loss=False, smooth=1e-7):
         probs = torch.sigmoid(logits)
         iflat = probs.view(-1)
         tflat = target.view(-1)
         intersection = (iflat * tflat).sum()
-        return ((2.0 * intersection + smooth) /
-                (iflat.sum() + tflat.sum() + smooth))
+        dice_coeff = ((2.0 * intersection + smooth) /
+                      (iflat.sum() + tflat.sum() + smooth))
+        if log_loss:
+            return -torch.log(dice_coeff)
+        return 1 - dice_coeff
 
 
 class FocalLoss(nn.Module):
@@ -44,7 +47,7 @@ class MixedLoss(nn.Module):
         self.dice_loss = DiceLoss()
 
     def forward(self, logits, target):
-        loss = (self.alpha * self.focal_loss(logits, target) -
-                torch.log(self.dice_loss(logits, target)))
+        loss = self.alpha * self.focal_loss(logits, target) +
+               self.dice_loss(logits, target, log_loss=True)
 
         return loss.mean()
