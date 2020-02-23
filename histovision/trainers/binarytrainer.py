@@ -6,14 +6,12 @@ import torch
 import torch.optim as optim
 # Progress bars
 from tqdm import tqdm
-# For original working directory
-from hydra.utils import get_original_cwd
 import hydra.utils
 # Local
+# Dataset chosen from cfg.provider
+import histovision.datasets
 from histovision.trainers import BaseTrainer
 from histovision.shared.meter import AverageMeter
-# For cfg.provider
-import histovision.datasets
 
 # Get root logger
 logger = logging.getLogger('root')
@@ -147,8 +145,7 @@ class BinaryTrainer(BaseTrainer):
                 logits = logits.detach().cpu()
 
                 # ===ON_BATCH_CLOSE===
-                self.meter.on_batch_close(loss=loss,
-                                          logits=logits, targets=targets)
+                self.meter.on_batch_close(loss=loss, logits=logits, targets=targets)
 
         # ===ON_EPOCH_CLOSE===
         # Collect loss & scores

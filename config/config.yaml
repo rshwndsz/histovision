@@ -15,8 +15,8 @@ model: ???    # Required, Specify at runtime
 criterion:
   class: histovision.losses.MixedLoss
   params:
-    alpha: 9.0
     gamma: 1.0
+    loss_weights: [1, 9]
 optimizer: Adam
 scheduler:
   class: ReduceLROnPlateau
