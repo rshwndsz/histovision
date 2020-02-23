@@ -36,9 +36,7 @@ class BaseMeter(object):
 
 class AverageMeter(BaseMeter):
     """Object to log & hold values during training"""
-    def __init__(self,
-                 phases=('train', 'val'),
-                 scores=('loss', 'iou')):
+    def __init__(self, scores, phases=('train', 'val')):
         super(AverageMeter, self).__init__()
         self.phases = phases
         self.current_phase = phases[0]
@@ -47,7 +45,7 @@ class AverageMeter(BaseMeter):
         self.store = {
             score: {
                 phase: [] for phase in self.phases
-            } for score in self.scores
+            } for score in self.scores.keys()
         }
         self.base_threshold = 0.5
         # Storage over 1 single epoch

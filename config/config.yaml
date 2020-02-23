@@ -57,7 +57,17 @@ training:
 
 device: cuda
 
-scores: [loss, iou, dice, acc, prec]
+scores:
+  loss:
+    class: histovision.losses.MixedLoss
+  iou:
+    fn: histovision.metrics.iou_score
+  dice:
+    fn: hisovision.metrics.dice_score
+  acc:
+    fn: histovision.metrics.acc_score
+  prec:
+    fn: histovision.metrics.precision_score
 
 # Data augmentations
 augmentations:
