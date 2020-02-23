@@ -14,15 +14,7 @@ model: ???    # Required, Specify at runtime
 # Loss function
 criterion: MixedLoss
 optimizer: Adam
-scheduler:
-  class: ReduceLROnPlateau
-  params:
-    # optimizer
-    mode: min
-    patience: 3
-    verbose: True
-    cooldown: 0
-    min_lr: 3e-6
+scheduler: ReduceLROnPlateau
 # Function to get dataloaders: provider(phase, cfg)
 provider: histovision.datasets.segdataset.provider
 # Trainer object: Trainer(cfg)
