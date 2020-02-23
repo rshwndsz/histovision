@@ -1,8 +1,6 @@
 # Python STL
 from pathlib import Path
 import logging
-# For original cwd
-from hydra.utils import get_original_cwd
 # Image Processing
 import numpy as np
 import cv2
@@ -58,6 +56,13 @@ class SegmentationDataset(Dataset):
         # Check if image has been read properly
         if image.size == 0:
             raise IOError(f"Unable to load image: {image_path}")
+
+        if self.phase == 'test':
+            augmented = self.transforms['common'](image=image)
+            new_image = self.transforms['img_only'](image=augmented['image'])
+            aug_tensors = self.transforms['final'](image=new_image['image'])
+            image = aug_tensors['image']
+            return image
 
         # <<< Note:
         # Mask is supposed to have the same filename as image

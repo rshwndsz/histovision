@@ -1,11 +1,14 @@
 import torch
+# Optimizer chosen from cfg.optimizer
 from torch import optim
 
 import matplotlib.pyplot as plt
 import hydra
 from tqdm import tqdm
 
+# Dataset chosen from cfg.dataset
 import histovision.datasets
+# Model chosen from cfg.model
 import histovision.models
 from .basetester import BaseTester
 
@@ -24,7 +27,7 @@ class BinaryTester(BaseTester):
         self.net.eval()
 
     def forward(self, images):
-        images = images.unsqueeze(dim=0).to(self.cfg.device)
+        images = images.to(self.cfg.device)
         probs = torch.sigmoid(self.net(images))
         preds = (probs > 0.5).float()
 

@@ -38,6 +38,7 @@ hyperparams:
   batch_size:
     train: 32
     val: 32
+    test: 1
   lr: 3e-4
 
 # Parameters for dataloader in provider
