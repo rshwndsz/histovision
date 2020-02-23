@@ -4,7 +4,6 @@ import torch
 logger = logging.getLogger('root')
 
 
-# TODO: Vectorize
 def true_positive(preds, targets, num_classes=2):
     """Compute number of true positive predictions
 
@@ -29,7 +28,6 @@ def true_positive(preds, targets, num_classes=2):
     return torch.tensor(out)
 
 
-# TODO: Vectorize
 def true_negative(preds, targets, num_classes=2):
     """Computes number of true negative predictions
 
@@ -54,7 +52,6 @@ def true_negative(preds, targets, num_classes=2):
     return torch.tensor(out)
 
 
-# TODO: Vectorize
 def false_positive(preds, targets, num_classes=2):
     """Computes number of false positive predictions
 
@@ -79,7 +76,6 @@ def false_positive(preds, targets, num_classes=2):
     return torch.tensor(out)
 
 
-# TODO: Vectorize
 def false_negative(preds, targets, num_classes=2):
     """Computes number of false negative predictions
 
