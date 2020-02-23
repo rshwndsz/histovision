@@ -12,11 +12,7 @@ defaults:
 dataset: ???  # Required, Specify at runtime
 model: ???    # Required, Specify at runtime
 # Loss function
-criterion:
-  class: histovision.losses.MixedLoss
-  params:
-    gamma: 1.0
-    loss_weights: [1, 9]
+criterion: MixedLoss
 optimizer: Adam
 scheduler:
   class: ReduceLROnPlateau

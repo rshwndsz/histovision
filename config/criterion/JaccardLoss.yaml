@@ -1,0 +1,9 @@
+criterion:
+    class: histovision.losses.jaccard.JaccardLoss
+    params:
+        log_loss: True
+        mode: "binary"
+        from_logits: True
+        include_classes: NULL
+        smooth: 0.0
+        eps: 1e-7

@@ -1,0 +1,5 @@
+criterion:
+    class: histovision.losses.MixedLoss
+    params:
+        gamma: 1.0
+        loss_weights: [1, 9]
