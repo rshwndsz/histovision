@@ -40,8 +40,8 @@ class BinaryTester(BaseTester):
                 preds = self.forward(images)
                 display(images, preds)
                 if self.cfg.testing.save_predictions:
-                    cv2.imwrite(self.cfg.testing.save_dir + 'pred_' + i,
-                                preds.numpy())
+                    cv2.imwrite(self.cfg.testing.save_dir + 'pred_' + str(i) + '.png',
+                                preds.cpu().detach().numpy().squeeze())
 
 
 def display(images, preds):
