@@ -1,7 +1,7 @@
 # Histovision version
 version: 0.1.0
 # Don't create checkpoint files
-debugging: True
+debugging: False
 device: cuda
 
 defaults:
@@ -9,13 +9,13 @@ defaults:
   - hydra/job_logging: custom
   # Custom output for --help
   - hydra/help: custom
+    # Loss function
+  - criterion: JaccardLoss
+  - scheduler: ReduceLROnPlateau
 
 dataset: ???  # Required, Specify at runtime
 model: ???    # Required, Specify at runtime
-# Loss function
-criterion: MixedLoss
 optimizer: Adam
-scheduler: ReduceLROnPlateau
 # Function to get dataloaders: provider(phase, cfg)
 provider: histovision.datasets.segdataset.provider
 # Trainer object: Trainer(cfg)
@@ -65,19 +65,19 @@ scores:
 augmentations:
   train:
     common:
-      ShiftScaleRotate:
-        shift_limit: 0
-        scale_limit: 0
-        rotate_limit: 15
-        p: 0.5
-      Flip:
-        p: 0.5
-      RandomRotate90:
-        p: 0.5
-      RandomBrightnessContrast:
-        p: 0.5
-      ElasticTransform:
-        p: 0.5
+#      ShiftScaleRotate:
+#        shift_limit: 0
+#        scale_limit: 0
+#        rotate_limit: 15
+#        p: 0.5
+#      Flip:
+#        p: 0.5
+#      RandomRotate90:
+#        p: 0.5
+#      RandomBrightnessContrast:
+#        p: 0.5
+#      ElasticTransform:
+#        p: 0.5
       RandomSizedCrop:
         min_max_height: [256, 256]
         height: ${dataset.image_size}

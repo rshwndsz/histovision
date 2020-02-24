@@ -1,16 +1,16 @@
 import torch
-# Optimizer chosen from cfg.optimizer
-from torch import optim
-
 import matplotlib.pyplot as plt
 import hydra
 from tqdm import tqdm
 import cv2
 
+# Optimizer chosen from cfg.optimizer
+from torch import optim
 # Dataset chosen from cfg.dataset
 import histovision.datasets
 # Model chosen from cfg.model
 import histovision.models
+
 from .basetester import BaseTester
 
 
@@ -19,7 +19,6 @@ class BinaryTester(BaseTester):
         super(BinaryTester, self).__init__()
         self.cfg = cfg
         self.net = hydra.utils.instantiate(self.cfg.model).to(self.cfg.device)
-        self.criterion = hydra.utils.instantiate(self.cfg.criterion)
         self.dataloader = eval(cfg.provider)('test', cfg)
 
     def load(self):
@@ -29,6 +28,7 @@ class BinaryTester(BaseTester):
 
     def forward(self, images):
         images = images.to(self.cfg.device)
+        plt.show()
         probs = torch.sigmoid(self.net(images))
         preds = (probs > 0.5).float()
 
@@ -46,10 +46,8 @@ class BinaryTester(BaseTester):
 
 def display(images, preds):
     fig, ax = plt.subplots(2, 1)
-    ax[0].imshow(preds.cpu().numpy().squeeze(),
-                 'gray')
-    ax[1].imshow(images.cpu().numpy().squeeze().transpose(1, 2, 0),
-                 'gray')
+    ax[0].imshow(preds.cpu().numpy().squeeze(), 'gray')
+    ax[1].imshow(images.cpu().numpy().squeeze().transpose(1, 2, 0))
     ax[0].set_title("Predictions")
     ax[1].set_title("Images")
     plt.show()

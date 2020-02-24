@@ -4,14 +4,14 @@ import torch
 logger = logging.getLogger('root')
 
 
-def true_positive(preds, targets, num_classes=2):
+def true_positive(y_pred, y_true, num_classes=2):
     """Compute number of true positive predictions
 
     Parameters
     ----------
-    preds : torch.Tensor
+    y_pred : torch.Tensor
         Predictions
-    targets : torch.Tensor
+    y_true : torch.Tensor
         Ground truths
     num_classes : int
         Number of classes (including background)
@@ -23,19 +23,19 @@ def true_positive(preds, targets, num_classes=2):
     """
     out = []
     for i in range(num_classes):
-        out.append(((preds == i) & (targets == i)).sum())
+        out.append(((y_pred == i) & (y_true == i)).sum())
 
     return torch.tensor(out)
 
 
-def true_negative(preds, targets, num_classes=2):
+def true_negative(y_pred, y_true, num_classes=2):
     """Computes number of true negative predictions
 
     Parameters
     ----------
-    preds : torch.Tensor
+    y_pred : torch.Tensor
         Predictions
-    targets : torch.Tensor
+    y_true : torch.Tensor
         Ground truths
     num_classes : int
         Number of classes (including background)
@@ -47,19 +47,19 @@ def true_negative(preds, targets, num_classes=2):
     """
     out = []
     for i in range(num_classes):
-        out.append(((preds != i) & (targets != i)).sum())
+        out.append(((y_pred != i) & (y_true != i)).sum())
 
     return torch.tensor(out)
 
 
-def false_positive(preds, targets, num_classes=2):
+def false_positive(y_pred, y_true, num_classes=2):
     """Computes number of false positive predictions
 
     Parameters
     ----------
-    preds : torch.Tensor
+    y_pred : torch.Tensor
         Predictions
-    targets : torch.Tensor
+    y_true : torch.Tensor
         Ground truths
     num_classes : int
         Number of classes (including background)
@@ -71,19 +71,19 @@ def false_positive(preds, targets, num_classes=2):
     """
     out = []
     for i in range(num_classes):
-        out.append(((preds == i) & (targets != i)).sum())
+        out.append(((y_pred == i) & (y_true != i)).sum())
 
     return torch.tensor(out)
 
 
-def false_negative(preds, targets, num_classes=2):
+def false_negative(y_pred, y_true, num_classes=2):
     """Computes number of false negative predictions
 
     Parameters
     ----------
-    preds : torch.Tensor
+    y_pred : torch.Tensor
         Predictions
-    targets : torch.Tensor
+    y_true : torch.Tensor
         Ground truths
     num_classes : int
         Number of classes (including background)
@@ -95,19 +95,19 @@ def false_negative(preds, targets, num_classes=2):
     """
     out = []
     for i in range(num_classes):
-        out.append(((preds != i) & (targets == i)).sum())
+        out.append(((y_pred != i) & (y_true == i)).sum())
 
     return torch.tensor(out)
 
 
-def precision_score(preds, targets, num_classes=2):
+def precision_score(y_pred, y_true, num_classes=2):
     """Computes precision score
 
     Parameters
     ----------
-    preds : torch.Tensor
+    y_pred : torch.Tensor
         Predictions
-    targets : torch.Tensor
+    y_true : torch.Tensor
         Ground truths
     num_classes : int
         Number of classes (including background)
@@ -117,22 +117,22 @@ def precision_score(preds, targets, num_classes=2):
     precision : Tuple[torch.Tensor, ...]
         List of precision scores for each class
     """
-    tp = true_positive(preds, targets, num_classes).to(torch.float)
-    fp = false_positive(preds, targets, num_classes).to(torch.float)
+    tp = true_positive(y_pred, y_true, num_classes).to(torch.float)
+    fp = false_positive(y_pred, y_true, num_classes).to(torch.float)
     out = tp / (tp + fp)
     out[torch.isnan(out)] = 0
 
     return out
 
 
-def accuracy_score(preds, targets, smooth=1e-10):
+def accuracy_score(y_pred, y_true, smooth=1e-10):
     """Compute accuracy score
 
     Parameters
     ----------
-    preds : torch.Tensor
+    y_pred : torch.Tensor
         Predictions
-    targets : torch.Tensor
+    y_true : torch.Tensor
         Ground truths
     smooth: float
         Smoothing for numerical stability
@@ -143,7 +143,7 @@ def accuracy_score(preds, targets, smooth=1e-10):
     acc : torch.Tensor
         Average accuracy score
     """
-    valids = (targets >= 0)
-    acc_sum = (valids * (preds == targets)).sum().float()
+    valids = (y_true >= 0)
+    acc_sum = (valids * (y_pred == y_true)).sum().float()
     valid_sum = valids.sum().float()
     return acc_sum / (valid_sum + smooth)

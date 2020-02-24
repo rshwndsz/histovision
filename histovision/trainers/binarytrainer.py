@@ -4,6 +4,7 @@ import logging
 # PyTorch
 import torch
 import torch.optim as optim
+import torch.optim.lr_scheduler as lr_scheduler
 # Progress bars
 from tqdm import tqdm
 import hydra.utils
@@ -55,10 +56,8 @@ class BinaryTrainer(BaseTrainer):
         # Model, loss, optimizer & scheduler
         self.net = hydra.utils.instantiate(self.cfg.model).to(self.cfg.device)
         self.criterion = hydra.utils.instantiate(self.cfg.criterion)
-        self.optimizer = optim.__dict__[self.cfg.optimizer](self.net.parameters(),
-                                                            lr=self.cfg.hyperparams.lr)
-        self.scheduler = optim.lr_scheduler.__dict__[self.cfg.scheduler['class']](
-            self.optimizer, **self.cfg.scheduler.params)
+        self.optimizer = optim.__dict__[self.cfg.optimizer](self.net.parameters(), lr=self.cfg.hyperparams.lr)
+        self.scheduler = lr_scheduler.__dict__[self.cfg.scheduler['class']](self.optimizer, **self.cfg.scheduler.params)
 
         # Get loaders for training and validation
         self.dataloaders = {
@@ -90,15 +89,18 @@ class BinaryTrainer(BaseTrainer):
         -------
         loss: torch.Tensor
             Loss from one forward pass
-        logits: torch.Tensor
+        outputs: torch.Tensor
             Raw output of the NN, without any activation function
             in the last layer
         """
         images = images.to(self.cfg.device)
         masks = targets.to(self.cfg.device)
-        logits = self.net(images)
-        loss = self.criterion(logits, masks)
-        return loss, logits
+        if self.cfg.criterion['class'] == 'torch.nn.CrossEntropyLoss':
+            # RuntimeError: Expected object of scalar type Long but got scalar type Float for argument #2 'target'
+            masks = masks.long().to(self.cfg.device)
+        outputs = self.net(images)
+        loss = self.criterion(outputs, masks)
+        return loss, outputs
 
     def iterate(self, epoch, phase):
         """1 epoch in the life of a model
@@ -133,7 +135,7 @@ class BinaryTrainer(BaseTrainer):
             self.meter.on_batch_begin()
 
             # Forward pass
-            loss, logits = self.forward(images, targets)
+            loss, outputs = self.forward(images, targets)
             if phase == "train":
                 # Backprop for training only
                 loss.backward()
@@ -142,10 +144,10 @@ class BinaryTrainer(BaseTrainer):
             # Update metrics for this batch
             with torch.no_grad():
                 loss = loss.detach().cpu()
-                logits = logits.detach().cpu()
+                outputs = outputs.detach().cpu()
 
                 # ===ON_BATCH_CLOSE===
-                self.meter.on_batch_close(loss=loss, logits=logits, targets=targets)
+                self.meter.on_batch_close(loss=loss, outputs=outputs, targets=targets)
 
         # ===ON_EPOCH_CLOSE===
         # Collect loss & scores

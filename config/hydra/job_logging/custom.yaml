@@ -20,7 +20,7 @@ hydra:
         class: logging.handlers.RotatingFileHandler
         formatter: format_for_file
         filename: ${hydra.job.name}.log
-        maxBytes: 20000
+        maxBytes: 100000
         backupCount: 5
 
     root:

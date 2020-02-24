@@ -77,21 +77,20 @@ class AverageMeter(BaseMeter):
     def on_batch_begin(self):
         pass
 
-    def on_batch_close(self, loss, logits, targets):
+    def on_batch_close(self, loss, outputs, targets):
         # Get predictions and probabilities from raw logits
-        probs = torch.sigmoid(logits)
-        preds = utils.predict(probs, self.base_threshold)
+        preds = utils.predict(outputs, self.base_threshold)
 
         # Assertion for shapes
         if not (preds.shape == targets.shape):
-            raise ValueError(f"Shape of preds: {preds.shape} must be the same "
+            raise ValueError(f"Shape of outputs: {outputs.shape} must be the same "
                              f"as that of targets: {targets.shape}.")
 
         # Add loss to list
         self.metrics['loss'].append(loss)
 
         # Calculate and add to metric lists
-        dice = metrics.dice_score(probs, targets, self.base_threshold)
+        dice = metrics.dice_score(preds, targets, self.base_threshold)
         self.metrics['dice'].append(dice)
 
         iou = metrics.iou_score(preds, targets)

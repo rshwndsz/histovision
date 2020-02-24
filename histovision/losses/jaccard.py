@@ -4,45 +4,11 @@ from torch import nn
 # noinspection PyPep8Naming
 from torch.nn import functional as F
 
+from histovision.metrics import iou_score
+
 BINARY_MODE = "binary"
 MULTICLASS_MODE = "multiclass"
 MULTILABEL_MODE = "multilabel"
-
-
-def soft_jaccard_score(y_pred: torch.Tensor, y_true: torch.Tensor, smooth=0.0, eps=1e-7, dims=None) -> torch.Tensor:
-    """Jaccard score
-
-    Parameters
-    ----------
-    y_pred : torch.Tensor
-        Predictions
-    y_true : torch.Tensor
-        Ground truths
-    smooth : float
-        Constant for numerical stability
-    eps : float
-        Constant for numerical stability
-    dims : Tuple[int, ...]
-        Dimensions to sum over
-
-    Returns
-    -------
-    jaccard_score: torch.Tensor
-        Jaccard score for each class
-    """
-    assert y_pred.size() == y_true.size()
-
-    if dims is not None:
-        intersection = torch.sum(y_pred * y_true, dim=dims)
-        cardinality = torch.sum(y_pred + y_true, dim=dims)
-    else:
-        intersection = torch.sum(y_pred * y_true)
-        cardinality = torch.sum(y_pred + y_true)
-
-    union = cardinality - intersection
-    jaccard_score = (intersection + smooth) / (union.clamp_min(eps) + smooth)
-
-    return jaccard_score
 
 
 class JaccardLoss(nn.Module):
@@ -61,7 +27,7 @@ class JaccardLoss(nn.Module):
         log_loss :
             If True, loss computed as `-log(jaccard)`; otherwise `1 - jaccard`
         from_logits :
-            If True assumes input is raw logits
+            If True assumes input is raw outputs
         smooth :
         eps :
             Small epsilon for numerical stability
@@ -126,7 +92,7 @@ class JaccardLoss(nn.Module):
             y_true = y_true.view(bs, num_classes, -1)   # N C HW
             y_pred = y_pred.view(bs, num_classes, -1)   # N C HW
 
-        scores = soft_jaccard_score(y_pred, y_true.type_as(y_pred), self.smooth, self.eps, dims=dims)
+        scores = iou_score(y_pred, y_true.type_as(y_pred), self.smooth, self.eps, dims=dims)
 
         if self.log_loss:
             loss = -torch.log(scores.clamp_min(self.eps))
