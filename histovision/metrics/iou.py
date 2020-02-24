@@ -4,37 +4,26 @@ import torch
 logger = logging.getLogger('root')
 
 
-def iou_score(y_pred, y_true, smooth=0.0, eps=1e-7, dims=None):
-    """Jaccard score
-
+def iou_score(preds: torch.Tensor,
+              targets: torch.Tensor,
+              smooth: float = 1e-7) -> torch.Tensor:
+    """Computes IoU or Jaccard index
     Parameters
     ----------
-    y_pred : torch.Tensor
+    preds : torch.Tensor
         Predictions
-    y_true : torch.Tensor
+    targets : torch.Tensor
         Ground truths
-    smooth : float
-        Constant for numerical stability
-    eps : float
-        Constant for numerical stability
-    dims : Tuple[int, ...]
-        Dimensions to sum over
-
+    smooth: float
+        Smoothing for numerical stability
+        1e-10 by default
     Returns
     -------
-    jaccard_score: torch.Tensor
-        Jaccard score for each class
+    iou : torch.Tensor
+        IoU score or Jaccard index
     """
-    assert y_pred.size() == y_true.size()
-
-    if dims is not None:
-        intersection = torch.sum(y_pred * y_true, dim=dims)
-        cardinality = torch.sum(y_pred + y_true, dim=dims)
-    else:
-        intersection = torch.sum(y_pred * y_true)
-        cardinality = torch.sum(y_pred + y_true)
-
-    union = cardinality - intersection
-    score = (intersection + smooth) / (union.clamp_min(eps) + smooth)
+    intersection = torch.sum(targets * preds)
+    union = torch.sum(targets) + torch.sum(preds) - intersection + smooth
+    score = (intersection + smooth) / union
 
     return score

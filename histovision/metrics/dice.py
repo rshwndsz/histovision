@@ -5,37 +5,41 @@ from histovision.shared import utils
 logger = logging.getLogger('root')
 
 
-def dice_score(y_pred, y_true, smooth=0, eps=1e-7, dims=None):
-    """Functional dice score
-
+def dice_score(probs: torch.Tensor,
+               targets: torch.Tensor,
+               threshold: float = 0.5) -> torch.Tensor:
+    """Calculate Sorenson-Dice coefficient
     Parameters
     ----------
-    y_pred : torch.Tensor
-        Predictions
-    y_true : torch.Tensor
+    probs : torch.Tensor
+        Probabilities
+    targets : torch.Tensor
         Ground truths
-    smooth : float
-        Value to avoid divide by zero error
-    eps : float
-        Min value for cardinality
-    dims : Tuple[int, ...]
-        Sum along these dimensions
-
+    threshold : float
+        probs > threshold => 1
+        probs <= threshold => 0
     Returns
     -------
-    dice_score: torch.Tensor
-        Dice score NOT loss
+    dice : torch.Tensor
+        Dice score
+    See Also
+    --------
+        https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient
     """
-    # Validate arguments
-    if y_pred.size() != y_true.size():
-        raise ValueError(f"size of predictions {y_pred.size()} != size of targets {y_true.size()} ")
 
-    if dims is not None:
-        intersection = torch.sum(y_pred * y_true, dim=dims)
-        cardinality = torch.sum(y_pred + y_true, dim=dims)
-    else:
-        intersection = torch.sum(y_pred * y_true)
-        cardinality = torch.sum(y_pred + y_true)
-    score = (2.0 * intersection + smooth) / (cardinality.clamp_min(eps) + smooth)
+    batch_size: int = targets.shape[0]
+    with torch.no_grad():
+        # Shape: [N, C, H, W]targets
+        probs = probs.view(batch_size, -1)
+        targets = targets.view(batch_size, -1)
+        # Shape: [N, C*H*W]
+        if not (probs.shape == targets.shape):
+            raise ValueError(f"Shape of probs: {probs.shape} must be the same"
+                             f"as that of targets: {targets.shape}.")
+        # Only 1's and 0's in p & t
+        p = utils.predict(probs, threshold)
+        t = utils.predict(targets, 0.5)
+        # Shape: [N, 1]
+        dice = 2 * (p * t).sum(-1) / ((p + t).sum(-1))
 
-    return score
+    return utils.nanmean(dice)
