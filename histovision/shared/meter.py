@@ -78,7 +78,10 @@ class AverageMeter(BaseMeter):
         pass
 
     def on_batch_close(self, loss, outputs, targets):
-        # Get predictions and probabilities from raw logits
+        # Get predictions and probabilities
+        if torch.max(outputs) >=1 or torch.min(outputs) <=0:
+            # From logits
+            outputs = torch.softmax(outputs, dim=1)     # From probabilities
         preds = utils.predict(outputs, self.base_threshold)
 
         # Assertion for shapes

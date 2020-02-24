@@ -1,0 +1,8 @@
+criterion:
+  class: torch.nn.CrossEntropyLoss
+  params:
+    weight: NULL
+    size_average: NULL
+    ignore_index: -100
+    reduce: NULL
+    reduction: mean
