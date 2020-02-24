@@ -1,0 +1,9 @@
+criterion:
+  class: histovision.losses.diceloss.DiceLoss
+  params:
+    mode: "binary"
+    include_classes: NULL
+    log_loss: False
+    from_logits: True
+    smooth: 0
+    eps: 1e-7

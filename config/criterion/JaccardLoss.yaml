@@ -1,5 +1,5 @@
 criterion:
-  class: histovision.losses.jaccard.JaccardLoss
+  class: histovision.losses.jaccardloss.JaccardLoss
   params:
     log_loss: True
     mode: "binary"

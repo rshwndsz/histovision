@@ -1,0 +1,8 @@
+criterion:
+  class: torch.nn.BCEWithLogitsLoss
+  params:
+    weight: NULL
+    size_average: NULL
+    reduce: NULL
+    reduction: mean
+    pos_weight: NULL
