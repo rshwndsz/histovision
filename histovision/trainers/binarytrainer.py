@@ -95,9 +95,6 @@ class BinaryTrainer(BaseTrainer):
         """
         images = images.to(self.cfg.device)
         masks = targets.to(self.cfg.device)
-        if self.cfg.criterion['class'] == 'torch.nn.CrossEntropyLoss':
-            # RuntimeError: Expected object of scalar type Long but got scalar type Float for argument #2 'target'
-            masks = masks.long().to(self.cfg.device)
         outputs = self.net(images)
         loss = self.criterion(outputs, masks)
         return loss, outputs

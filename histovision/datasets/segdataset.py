@@ -78,6 +78,9 @@ class SegmentationDataset(Dataset):
             mask = np.where(mask == int(intensity), float(kclass), mask)
         mask = mask.astype(np.float32)
 
+        assert mask.max() <= self.cfg.dataset.num_classes
+        assert mask.min() >= 0
+
         # Augment masks and images
         augmented = self.transforms['common'](image=image, mask=mask)
         new_image = self.transforms['img_only'](image=augmented['image'])

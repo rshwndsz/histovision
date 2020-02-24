@@ -28,13 +28,15 @@ class BinaryTester(BaseTester):
 
     def forward(self, images):
         images = images.to(self.cfg.device)
-        plt.show()
         probs = torch.sigmoid(self.net(images))
         preds = (probs > 0.5).float()
 
         return preds
 
     def start(self):
+        # Load the net
+        self.load()
+        # Test the net
         with torch.no_grad():
             for i, images in tqdm(enumerate(self.dataloader), total=len(self.dataloader)):
                 preds = self.forward(images)

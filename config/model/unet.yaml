@@ -7,7 +7,7 @@ model:
     decoder_use_batchnorm: True
     # decoder_channels: [256, 128, 64, 32, 16]
     decoder_attention_type: NULL
-    # nn.Softmax(dim=1, **params)
+    # softmax2d => nn.Softmax(dim=1, **params)
     activation: NULL
     in_channels: 3
     classes: 1
