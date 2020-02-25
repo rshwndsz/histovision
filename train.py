@@ -62,26 +62,8 @@ def train(cfg):
         # Exit
         sys.exit(0)
 
-    # Helper function to plot scores at the end of training
-    # TODO Replace with tensorboard or visdom
-    def metric_plot(scores, name):
-        plt.figure(figsize=(15, 5))
-        # Plot training scores
-        plt.plot(range(len(scores["train"])),
-                 scores["train"],
-                 label=f'train {name}')
-        # Plot validation scores
-        plt.plot(range(len(scores["val"])),
-                 scores["val"],
-                 label=f'val {name}')
-        plt.title(f'{name} plot')
-        plt.xlabel('Epoch')
-        plt.ylabel(f'{name}')
-        plt.legend()
-        plt.show()
-
     for metric_name, metric_values in trainer.meter.store.items():
-        metric_plot(metric_values, metric_name)
+        metric_plot(cfg, metric_values, metric_name)
 
 
 # TODO Validate everything else in config
@@ -121,6 +103,28 @@ def validate_config(cfg):
         logger.warning("Setting device to 'cpu' as device: 'cuda' is not available")
 
     return cfg
+
+
+# Helper function to plot scores at the end of training
+# TODO Replace with tensorboard or visdom
+def metric_plot(cfg, scores, name):
+    plt.figure(figsize=(15, 5))
+    # Plot training scores
+    plt.plot(range(len(scores["train"])),
+             scores["train"],
+             label=f'train {name}')
+    # Plot validation scores
+    plt.plot(range(len(scores["val"])),
+             scores["val"],
+             label=f'val {name}')
+    plt.title(f'{name} plot')
+    plt.xlabel('Epoch')
+    plt.ylabel(f'{name}')
+    plt.legend()
+    # Create path if it doesn't exist
+    save_path = Path(cfg.training.results_dir) / f'{name}.png'
+    save_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_path, bbox_inches='tight', pad_inches=1)
 
 
 if __name__ == "__main__":

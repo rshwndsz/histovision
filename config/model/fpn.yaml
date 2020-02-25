@@ -2,7 +2,8 @@
 # Paper: https://arxiv.org/abs/1612.03144
 model:
   class: segmentation_models_pytorch.FPN
-  encoder_name: "resnet34"
+  params:
+    encoder_name: "resnet34"
     encoder_depth: 5
     encoder_weights: "imagenet"
     decoder_pyramid_channels: 256

@@ -3,7 +3,7 @@
 model:
   class: segmentation_models_pytorch.DeepLabV3
   params:
-    encoder_name: "resnet34"
+    encoder_name: "densenet121"
     encoder_depth: 5
     encoder_weights: NULL
     decoder_channels: 256

@@ -3,7 +3,7 @@
 model:
   class: segmentation_models_pytorch.PAN
   params:
-    encoder_name: "resnet34"
+    encoder_name: "resnet50"
     encoder_weights: "imagenet"
     encoder_dilation: True
     decoder_channels: 32

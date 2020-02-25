@@ -3,7 +3,7 @@
 model:
   class: segmentation_models_pytorch.PSPNet
   params:
-    encoder_name: "resnet34"
+    encoder_name: "resnet50"
     encoder_weights: NULL
     encoder_depth: 3
     psp_out_channels: 512

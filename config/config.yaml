@@ -10,7 +10,7 @@ defaults:
   # Custom output for --help
   - hydra/help: custom
     # Loss function
-  - criterion: JaccardLoss
+  - criterion: MixedLoss
   - scheduler: ReduceLROnPlateau
 
 dataset: ???  # Required, Specify at runtime
@@ -44,11 +44,12 @@ training:
   early_stop:
     patience: 6
   cudnn_benchmark: true
+  results_dir: results/
 
 testing:
   checkpoint_path: ${best_weights_path}
   save_predictions: False
-  save_dir: test_preds
+  testing_dir: predictions/
 
 scores:
   loss:
@@ -66,19 +67,19 @@ scores:
 augmentations:
   train:
     common:
-#      ShiftScaleRotate:
-#        shift_limit: 0
-#        scale_limit: 0
-#        rotate_limit: 15
-#        p: 0.5
-#      Flip:
-#        p: 0.5
-#      RandomRotate90:
-#        p: 0.5
-#      RandomBrightnessContrast:
-#        p: 0.5
-#      ElasticTransform:
-#        p: 0.5
+      ShiftScaleRotate:
+        shift_limit: 0
+        scale_limit: 0
+        rotate_limit: 15
+        p: 0.5
+      Flip:
+        p: 0.5
+      RandomRotate90:
+        p: 0.5
+      RandomBrightnessContrast:
+        p: 0.5
+      ElasticTransform:
+        p: 0.5
       RandomSizedCrop:
         min_max_height: [256, 256]
         height: ${dataset.image_size}

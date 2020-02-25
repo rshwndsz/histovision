@@ -146,3 +146,6 @@ dmypy.json
 
 # Hydra output files
 outputs/
+multiruns/
+multirun/
+output/

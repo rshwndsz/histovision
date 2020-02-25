@@ -3,7 +3,7 @@
 model:
   class: segmentation_models_pytorch.Linknet
   params:
-    encoder: 'resnet34'
+    encoder_name: 'resnet101'
     encoder_depth: 5
     encoder_weights: NULL
     decoder_use_batchnorm: True
