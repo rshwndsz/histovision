@@ -46,6 +46,7 @@ training:
   cudnn_benchmark: true
 
 testing:
+  checkpoint_path: ${best_weights_path}
   save_predictions: False
   save_dir: test_preds
 
@@ -120,13 +121,12 @@ augmentations:
 
   test:
     common:
-      RandomSizedCrop:
-        min_max_height: [256, 256]
+      Resize:
         height: ${dataset.image_size}
         width: ${dataset.image_size}
-        w2h_ratio: 1.0
-        interpolation: 1 # cv2.INTER_LINEAR
-        p: 1.0
+        interpolation: 1
+        always_apply: True
+        p: 1
 
     img_only:
       Normalize:

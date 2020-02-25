@@ -1,7 +1,7 @@
 model:
   class: segmentation_models_pytorch.Unet
   params:
-    encoder_name: "resnet34"
+    encoder_name: "densenet121"
     encoder_depth: 5
     encoder_weights: "imagenet"
     decoder_use_batchnorm: True

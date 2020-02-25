@@ -19,12 +19,8 @@ class BinaryTester(BaseTester):
         super(BinaryTester, self).__init__()
         self.cfg = cfg
         self.net = hydra.utils.instantiate(self.cfg.model).to(self.cfg.device)
-        self.dataloader = eval(cfg.provider)('test', cfg)
-
-    def load(self):
-        checkpoint = torch.load(self.cfg.best_weights_path)
-        self.net.load_state_dict(checkpoint['state_dict'])
         self.net.eval()
+        self.dataloader = eval(self.cfg.provider)('test', self.cfg)
 
     def forward(self, images):
         images = images.to(self.cfg.device)
@@ -35,7 +31,8 @@ class BinaryTester(BaseTester):
 
     def start(self):
         # Load the net
-        self.load()
+        checkpoint = torch.load(self.cfg.testing.checkpoint_path)
+        self.net.load_state_dict(checkpoint['state_dict'])
         # Test the net
         with torch.no_grad():
             for i, images in tqdm(enumerate(self.dataloader), total=len(self.dataloader)):
