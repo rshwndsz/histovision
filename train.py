@@ -20,6 +20,8 @@ logger = logging.getLogger('root')
 
 @hydra.main(config_path="config/config.yaml")
 def train(cfg):
+    # Show working directory
+    logger.info(f"Running experiment in {Path.cwd()}")
     # Validate configuration
     cfg = validate_config(cfg)
 
@@ -112,12 +114,11 @@ def validate_config(cfg):
         raise ValueError(f"Length of class dict must be same as number of classes.")
 
     # device
-    if not torch.cuda.is_available():
-        cfg.device = "cpu"
-        torch.set_default_tensor_type("torch.FloatTensor")
-    else:
-        cfg.device = "cuda:0"  # <<< Note: Single-GPU
-        torch.set_default_tensor_type("torch.cuda.FloatTensor")
+    if torch.cuda.is_available() and cfg.device == 'cpu':
+        logger.warning("Using device: 'cpu' when device: 'cuda' is available")
+
+    elif not torch.cuda.is_available() and cfg.device != 'cpu':
+        logger.warning("Setting device to 'cpu' as device: 'cuda' is not available")
 
     return cfg
 

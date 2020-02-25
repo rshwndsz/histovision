@@ -11,30 +11,7 @@ import histovision.metrics as metrics
 logger = logging.getLogger('root')
 
 
-class BaseMeter(object):
-    def __init__(self):
-        pass
-
-    def on_train_begin(self, *args, **kwargs):
-        pass
-
-    def on_epoch_begin(self, *args, **kwargs):
-        pass
-
-    def on_batch_begin(self, *args, **kwargs):
-        pass
-
-    def on_batch_close(self, *args, **kwargs):
-        pass
-
-    def on_epoch_close(self, *args, **kwargs):
-        pass
-
-    def on_train_close(self, *args, **kwargs):
-        pass
-
-
-class AverageMeter(BaseMeter):
+class AverageMeter(object):
     """Object to log & hold values during training"""
     def __init__(self, scores, phases=('train', 'val')):
         super(AverageMeter, self).__init__()
@@ -78,32 +55,30 @@ class AverageMeter(BaseMeter):
         pass
 
     def on_batch_close(self, loss, outputs, targets):
-        # Get predictions and probabilities
-        if torch.max(outputs) >= 1 or torch.min(outputs) <= 0:
-            # From logits
-            outputs = torch.softmax(outputs, dim=1)     # From probabilities
-        preds = utils.predict(outputs, self.base_threshold)
+        # TODO Make it work for logits, probs and preds
+        probs: torch.Tensor = torch.sigmoid(outputs)
+        preds: torch.Tensor = utils.predict(probs, self.base_threshold)
 
         # Assertion for shapes
         if not (preds.shape == targets.shape):
-            raise ValueError(f"Shape of outputs: {outputs.shape} must be the same "
+            raise ValueError(f"Shape of preds: {preds.shape} must be the same "
                              f"as that of targets: {targets.shape}.")
 
         # Add loss to list
         self.metrics['loss'].append(loss)
 
         # Calculate and add to metric lists
-        dice = metrics.dice_score(preds, targets, self.base_threshold)
+        dice: torch.Tensor = metrics.dice_score(probs, targets, self.base_threshold)
         self.metrics['dice'].append(dice)
 
-        iou = metrics.iou_score(preds, targets)
+        iou: torch.Tensor = metrics.iou_score(preds, targets)
         self.metrics['iou'].append(iou)
 
-        acc = metrics.accuracy_score(preds, targets)
+        acc: torch.Tensor = metrics.accuracy_score(preds, targets)
         self.metrics['acc'].append(acc)
 
         # <<< Change: Hardcoded for binary segmentation
-        prec = metrics.precision_score(preds, targets)[1]
+        prec: torch.Tensor = metrics.precision_score(preds, targets)[1]
         self.metrics['prec'].append(prec)
 
     def on_epoch_close(self):

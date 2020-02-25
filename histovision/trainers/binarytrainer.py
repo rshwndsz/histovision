@@ -197,5 +197,8 @@ class BinaryTrainer(BaseTrainer):
             if epoch % self.cfg.training.val_freq == 0:
                 self.validate(epoch)
 
+            # Print newline after every epoch
+            print()
+
         # ===ON_TRAIN_END===
         self.meter.on_train_close()
