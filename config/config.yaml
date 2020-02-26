@@ -24,35 +24,55 @@ trainer: histovision.trainers.BinaryTrainer
 tester: histovision.testers.BinaryTester
 
 hyperparams:
-  batch_size:
-    train: 32
-    val: 32
-    test: 1
+  # Initial learning rate
   lr: 3e-4
 
 # Parameters for dataloader in provider
 dataloader:
+  # Number of workers
   num_workers: 4
+  # Load samples on CPU and send to GPU
+  # See: https://discuss.pytorch.org/t/when-to-set-pin-memory-to-true/19723/2
   pin_memory: True
   shuffle: True
 
 # Parameters for training loop
 training:
+  # Start from this epoch
   start_epoch: 1
+  # Total number of epochs for training
   num_epochs: 100
+  # Validate every `val_freq` epochs
+  # Must be >= `num_epochs`
   val_freq: 4
+  # Batch size for training, validation & testing
+  batch_size:
+    train: 32
+    val: 32
+    test: 1
+  # Stop training if model doesn't improve for `patience` epochs
   early_stop:
     patience: 6
+  # Enable faster convolutions at the expense of memory
   cudnn_benchmark: true
+  # Directory to store plots at the end of training
+  # Relative to outputs/date/time or multiruns/date/time/job
   results_dir: results/
 
 testing:
+  # Path to checkpoint file
+  # By default set to `best_weights.pth` in `checkpoints/` of `hydra.run.dir`
   checkpoint_path: ${best_weights_path}
-  save_predictions: False
+  # Save predictions as .png files or show plots
+  # Showing plots is a blocking op and leads to problems in multirun
+  save_predictions: True
+  # Directory to save predictions on the test set
+  # Relative to outputs/date/time/ or multirun/date/time/job/
   testing_dir: predictions/
 
 scores:
   loss:
+    # TODO Read from criterion
     class: histovision.losses.MixedLoss
   iou:
     fn: histovision.metrics.iou_score
@@ -141,5 +161,7 @@ augmentations:
       ToTensorV2:
 
 # Some important paths relative to outputs/date/time
+# Path to checkpoint file saved at the end of training
 final_weights_path: checkpoints/final_weights.pth
+# Path to checkpoint file saved at the end of best validation loop
 best_weights_path: checkpoints/best_weights.pth
