@@ -164,7 +164,7 @@ def provider(phase, cfg):
     logger.info(f"Creating {phase} dataloader")
     dataloader = DataLoader(
         image_dataset,
-        batch_size=cfg.hyperparams.batch_size[phase],
+        batch_size=cfg.training.batch_size[phase],
         num_workers=cfg.dataloader.num_workers,
         pin_memory=cfg.dataloader.pin_memory,
         shuffle=cfg.dataloader.shuffle
