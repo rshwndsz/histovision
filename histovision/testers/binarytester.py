@@ -38,9 +38,10 @@ class BinaryTester(BaseTester):
         with torch.no_grad():
             for i, images in tqdm(enumerate(self.dataloader), total=len(self.dataloader)):
                 preds = self.forward(images)
-                # display(images, preds, save=self.cfg.testing.save_predictions,
-                #         save_dir=self.cfg.testing.predictions_dir, fname=f"pred_{i}.png")
-                display(images, preds, save=False)
+                display(images, preds,
+                        save=self.cfg.testing.save_predictions,
+                        save_dir=self.cfg.testing.predictions_dir,
+                        fname=f"pred_{i}.png")
 
 
 def display(images, preds, save=False, save_dir=None, fname=None):
@@ -49,6 +50,7 @@ def display(images, preds, save=False, save_dir=None, fname=None):
     ax[1].imshow(images.cpu().numpy().squeeze().transpose(1, 2, 0))
     ax[0].set_title("Predictions")
     ax[1].set_title("Images")
+
     if save:
         save_path = Path(save_dir) / fname
         save_path.parent.mkdir(parents=True, exist_ok=True)
