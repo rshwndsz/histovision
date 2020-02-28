@@ -101,6 +101,7 @@ def validate_config(cfg):
 
     elif not torch.cuda.is_available() and cfg.device != 'cpu':
         logger.warning("Setting device to 'cpu' as device: 'cuda' is not available")
+        cfg.device = 'cpu'
 
     return cfg
 
