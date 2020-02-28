@@ -89,8 +89,9 @@ class SegmentationDataset(Dataset):
         image = aug_tensors['image']
         mask = aug_tensors['mask']
 
-        # Add a channel dimension (C in [N C H W] in PyTorch) if required
-        if self.cfg.dataset.num_classes == 2:
+        # Add a channel dimension (C in [N C H W] in PyTorch)
+        # CrossEntropyLoss takes 3D vectors
+        if self.cfg.dataset.num_classes == 2 and self.cfg.criterion['class'] != "torch.nn.CrossEntropyLoss":
             mask = torch.unsqueeze(mask, dim=0)  # [H, W] => [H, C, W]
 
         # Return tuple of tensors
