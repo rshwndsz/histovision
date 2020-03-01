@@ -1,45 +1,111 @@
 import logging
 import torch
-from histovision.shared import utils
+import torch.nn.functional as F
+import torch.nn as nn
 
 logger = logging.getLogger('root')
 
 
-def dice_score(probs: torch.Tensor,
-               targets: torch.Tensor,
-               threshold: float = 0.5) -> torch.Tensor:
-    """Calculate Sorenson-Dice coefficient
+BINARY_MODE = "binary"
+MULTICLASS_MODE = "multiclass"
+MULTILABEL_MODE = "multilabel"
+
+
+def soft_dice_score(y_pred, y_true, smooth=0, eps=1e-7, dims=None):
+    """Functional form
+
     Parameters
     ----------
-    probs : torch.Tensor
-        Probabilities
-    targets : torch.Tensor
-        Ground truths
-    threshold : float
-        probs > threshold => 1
-        probs <= threshold => 0
+    y_pred : torch.Tensor
+        [N C HW]
+    y_true : torch.Tensor
+        [N C HW]
+    smooth : float
+    eps : float
+    dims : Tuple[int, ...]
+
     Returns
     -------
-    dice : torch.Tensor
-        Dice score
-    See Also
-    --------
-        https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient
+    dice_scores : torch.Tensor
     """
+    assert y_pred.size() == y_true.size()
+    if dims is not None:
+        intersection = torch.sum(y_pred * y_true, dim=dims)
+        cardinality = torch.sum(y_pred + y_true, dim=dims)
+    else:
+        intersection = torch.sum(y_pred * y_true)
+        cardinality = torch.sum(y_pred + y_true)
+    scores = (2.0 * intersection + smooth) / (cardinality.clamp_min(eps) + smooth)
 
-    batch_size: int = targets.shape[0]
-    with torch.no_grad():
-        # Shape: [N, C, H, W]targets
-        probs = probs.view(batch_size, -1)
-        targets = targets.view(batch_size, -1)
-        # Shape: [N, C*H*W]
-        if not (probs.shape == targets.shape):
-            raise ValueError(f"Shape of probs: {probs.shape} must be the same"
-                             f"as that of targets: {targets.shape}.")
-        # Only 1's and 0's in p & t
-        p = utils.predict(probs, threshold)
-        t = utils.predict(targets, 0.5)
-        # Shape: [N, 1]
-        dice = 2 * (p * t).sum(-1) / ((p + t).sum(-1))
+    return scores
 
-    return utils.nanmean(dice)
+
+class DiceMetric(nn.Module):
+    def __init__(self, mode, classes=None, from_logits=True, smooth=0, eps=1e-7):
+        super(DiceMetric, self).__init__()
+        assert mode in {BINARY_MODE, MULTILABEL_MODE, MULTICLASS_MODE}
+        self.mode = mode
+        if classes is not None:
+            assert mode != BINARY_MODE, "Masking classes is not supported with mode=binary"
+
+        self.classes = classes
+        self.from_logits = from_logits
+        self.smooth = smooth
+        self.eps = eps
+
+    def forward(self, y_pred, y_true):
+        """Forward pass
+
+        Parameters
+        ----------
+        y_pred : torch.Tensor
+            [N C H W]
+        y_true :
+            [N H W]
+
+        Returns
+        -------
+        dice_scores : torch.Tensor
+        """
+        assert y_true.size(0) == y_pred.size(0)
+
+        if self.from_logits:
+            # Apply activations to get [0..1] class probabilities
+            if self.mode == MULTICLASS_MODE:
+                y_pred = y_pred.softmax(dim=1)
+            else:
+                y_pred = y_pred.sigmoid()
+
+        bs = y_true.size(0)
+        num_classes = y_pred.size(1)
+        dims = (0, 2)
+
+        if self.mode == BINARY_MODE:
+            y_true = y_true.view(bs, 1, -1)
+            y_pred = y_pred.view(bs, 1, -1)
+
+        if self.mode == MULTICLASS_MODE:
+            y_true = y_true.view(bs, -1)
+            y_pred = y_pred.view(bs, num_classes, -1)
+
+            y_true = F.one_hot(y_true.long(), num_classes)      # [N HW]   -> [N HW C]
+            y_true = y_true.permute(0, 2, 1)                    # [N HW C] -> [N C HW]
+
+        if self.mode == MULTILABEL_MODE:
+            y_true = y_true.view(bs, num_classes, -1)
+            y_pred = y_pred.view(bs, num_classes, -1)
+
+        scores = soft_dice_score(y_pred, y_true.type_as(y_pred), self.smooth, self.eps, dims=dims)
+
+        # Dice loss is undefined for non-empty classes
+        # So we zero contribution of channel that does not have true pixels
+        mask = y_true.sum(dims) > 0
+        scores *= mask.float()
+
+        if self.classes is not None:
+            scores = scores[self.classes]
+
+        return scores
+
+
+dice_score = DiceMetric(mode="multiclass")
