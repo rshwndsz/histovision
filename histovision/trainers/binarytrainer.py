@@ -147,10 +147,6 @@ class BinaryTrainer(BaseTrainer):
                 outputs = outputs.detach().cpu()
 
                 # ===ON_BATCH_CLOSE===
-                # Convert masks to one_hot if CELoss as outputs will be one_hot
-                if self.cfg.criterion['class'] == "torch.nn.CrossEntropyLoss":
-                    targets = F.one_hot(targets, num_classes=targets.unique().size(0))  # [N H W]   -> [N H W C]
-                    targets = targets.permute(0, 3, 1, 2)                             # [N H W C] -> [N C H W]
                 self.meter.on_batch_close(loss=loss, outputs=outputs, targets=targets)
 
         # ===ON_EPOCH_CLOSE===
