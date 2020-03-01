@@ -1,6 +1,9 @@
 import logging
 import torch
 
+__all__ = ["true_positive", "true_negative", "false_positive", "false_negative",
+           "precision", "accuracy", "recall", "f1"]
+
 logger = logging.getLogger('root')
 
 
@@ -100,7 +103,7 @@ def false_negative(y_pred, y_true, num_classes=2):
     return torch.tensor(out)
 
 
-def precision_score(y_pred, y_true, num_classes=2):
+def precision(y_pred, y_true, num_classes=2):
     """Computes precision score
 
     Parameters
@@ -125,25 +128,23 @@ def precision_score(y_pred, y_true, num_classes=2):
     return out
 
 
-def accuracy_score(y_pred, y_true, smooth=1e-10):
-    """Compute accuracy score
+def accuracy(y_pred, y_true, num_classes=2):
+    tp = true_positive(y_pred, y_true, num_classes)
+    tn = true_negative(y_pred, y_true, num_classes)
+    total_population = y_pred.view(-1).size(0)
 
-    Parameters
-    ----------
-    y_pred : torch.Tensor
-        Predictions
-    y_true : torch.Tensor
-        Ground truths
-    smooth: float
-        Smoothing for numerical stability
-        1e-10 by default
+    return (tp.float() + tn.float()) / float(total_population)
 
-    Returns
-    -------
-    acc : torch.Tensor
-        Average accuracy score
-    """
-    valids = (y_true >= 0)
-    acc_sum = (valids * (y_pred == y_true)).sum().float()
-    valid_sum = valids.sum().float()
-    return acc_sum / (valid_sum + smooth)
+
+def recall(y_pred, y_true, num_classes=2):
+    tp = true_positive(y_pred, y_true, num_classes)
+    fn = false_negative(y_pred, y_true, num_classes)
+
+    return (tp.float()) / (tp.float() + fn.float())
+
+
+def f1(y_pred, y_true, num_classes=2):
+    p = precision(y_pred, y_true, num_classes).float()
+    r = recall(y_pred, y_true, num_classes).float()
+
+    return 2 * (p * r) / (p + r)
