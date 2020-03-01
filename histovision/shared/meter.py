@@ -56,29 +56,25 @@ class AverageMeter(object):
 
     def on_batch_close(self, loss, outputs, targets):
         # TODO Make it work for logits, probs and preds
-        probs: torch.Tensor = torch.sigmoid(outputs)
-        preds: torch.Tensor = utils.predict(probs, self.base_threshold)
-
-        # Assertion for shapes
-        if not (preds.shape == targets.shape):
-            raise ValueError(f"Shape of preds: {preds.shape} must be the same "
-                             f"as that of targets: {targets.shape}.")
+        # TODO Fix all
+        probs = torch.sigmoid(outputs)
+        preds = utils.predict(probs, self.base_threshold)
 
         # Add loss to list
         self.metrics['loss'].append(loss)
 
         # Calculate and add to metric lists
-        dice: torch.Tensor = metrics.dice_score(probs, targets, self.base_threshold)
+        dice = metrics.dice_score(outputs, targets)
         self.metrics['dice'].append(dice)
 
-        iou: torch.Tensor = metrics.iou_score(preds, targets)
+        iou = metrics.iou_score(outputs, targets)
         self.metrics['iou'].append(iou)
 
-        acc: torch.Tensor = metrics.accuracy_score(preds, targets)
+        acc = metrics.accuracy(preds, targets)
         self.metrics['acc'].append(acc)
 
         # <<< Change: Hardcoded for binary segmentation
-        prec: torch.Tensor = metrics.precision_score(preds, targets)[1]
+        prec = metrics.precision(preds, targets)
         self.metrics['prec'].append(prec)
 
     def on_epoch_close(self):

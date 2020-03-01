@@ -71,17 +71,18 @@ testing:
   testing_dir: predictions/
 
 scores:
-  loss:
-    # TODO Read from criterion
-    class: histovision.losses.MixedLoss
   iou:
     fn: histovision.metrics.iou_score
   dice:
     fn: hisovision.metrics.dice_score
   acc:
-    fn: histovision.metrics.acc_score
+    fn: histovision.metrics.accuracy
+    params:
+      num_classes: 2
   prec:
-    fn: histovision.metrics.precision_score
+    fn: histovision.metrics.precision
+    params:
+      num_classes: 2
 
 # Data augmentations
 augmentations:
