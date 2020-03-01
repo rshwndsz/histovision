@@ -4,6 +4,7 @@ import logging
 # PyTorch
 import torch
 import torch.optim as optim
+import torch.nn.functional as F
 import torch.optim.lr_scheduler as lr_scheduler
 # Progress bars
 from tqdm import tqdm
@@ -94,10 +95,13 @@ class BinaryTrainer(BaseTrainer):
             in the last layer
         """
         images = images.to(self.cfg.device)
-        masks = targets.to(self.cfg.device)
         if self.cfg.criterion['class'] == "torch.nn.CrossEntropyLoss":
-            masks = masks.long()
+            targets = targets.long()
+        masks = targets.to(self.cfg.device)
         outputs = self.net(images)
+        if self.cfg.criterion['class'] == "torch.nn.CrossEntropyLoss":
+            masks = F.one_hot(masks, num_classes=masks.unique().size(0))  # [N H W]   -> [N H W C]
+            masks = masks.permute(0, 3, 1, 2)                             # [N H W C] -> [N C H W]
         loss = self.criterion(outputs, masks)
         return loss, outputs
 
