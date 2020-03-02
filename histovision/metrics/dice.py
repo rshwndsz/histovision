@@ -11,14 +11,14 @@ MULTICLASS_MODE = "multiclass"
 MULTILABEL_MODE = "multilabel"
 
 
-def soft_dice_score(y_pred, y_true, smooth=0, eps=1e-7, dims=None):
+def soft_dice_score(probs, targets, smooth=0, eps=1e-7, dims=None):
     """Functional form
 
     Parameters
     ----------
-    y_pred : torch.Tensor
+    probs : torch.Tensor
         [N C HW]
-    y_true : torch.Tensor
+    targets : torch.Tensor
         [N C HW]
     smooth : float
     eps : float
@@ -28,13 +28,13 @@ def soft_dice_score(y_pred, y_true, smooth=0, eps=1e-7, dims=None):
     -------
     dice_scores : torch.Tensor
     """
-    assert y_pred.size() == y_true.size()
+    assert probs.size() == targets.size()
     if dims is not None:
-        intersection = torch.sum(y_pred * y_true, dim=dims)
-        cardinality = torch.sum(y_pred + y_true, dim=dims)
+        intersection = torch.sum(probs * targets, dim=dims)
+        cardinality = torch.sum(probs + targets, dim=dims)
     else:
-        intersection = torch.sum(y_pred * y_true)
-        cardinality = torch.sum(y_pred + y_true)
+        intersection = torch.sum(probs * targets)
+        cardinality = torch.sum(probs + targets)
     scores = (2.0 * intersection + smooth) / (cardinality.clamp_min(eps) + smooth)
 
     return scores
@@ -53,59 +53,59 @@ class DiceMetric(nn.Module):
         self.smooth = smooth
         self.eps = eps
 
-    def forward(self, y_pred, y_true):
+    def forward(self, outputs, targets):
         """Forward pass
 
         Parameters
         ----------
-        y_pred : torch.Tensor
-            [N C H W]
-        y_true :
-            [N H W]
-
+        outputs : torch.Tensor  [N C H W]
+            Outputs of the model
+            May be raw logits based on `self.from_logits`
+        targets : torch.Tensor  [N H W]
+            Ground truths
+            Have values in {0, C-1}
         Returns
         -------
         dice_scores : torch.Tensor
         """
-        assert y_true.size(0) == y_pred.size(0)
+        assert outputs.size(0) == targets.size(0), "Batch size must be same"
+
+        bs = targets.size(0)
+        num_classes = outputs.size(1)
+        dims = (0, 2)
 
         if self.from_logits:
             # Apply activations to get [0..1] class probabilities
             if self.mode == MULTICLASS_MODE:
-                y_pred = y_pred.softmax(dim=1)
+                probs = outputs.softmax(dim=1)
             else:
-                y_pred = y_pred.sigmoid()
-
-        bs = y_true.size(0)
-        num_classes = y_pred.size(1)
-        dims = (0, 2)
+                probs = outputs.sigmoid()
+        else:
+            probs = outputs
 
         if self.mode == BINARY_MODE:
-            y_true = y_true.view(bs, 1, -1)
-            y_pred = y_pred.view(bs, 1, -1)
+            targets = targets.view(bs, 1, -1)           # [N H W]   -> [N 1 *]
+            probs = probs.view(bs, 1, -1)               # [N 1 H W] -> [N 1 *]
 
         if self.mode == MULTICLASS_MODE:
-            y_true = y_true.view(bs, -1)
-            y_pred = y_pred.view(bs, num_classes, -1)
-
-            y_true = F.one_hot(y_true.long(), num_classes)      # [N HW]   -> [N HW C]
-            y_true = y_true.permute(0, 2, 1)                    # [N HW C] -> [N C HW]
+            targets = targets.view(bs, -1)              # [N H W]   -> [N *]
+            probs = probs.view(bs, num_classes, -1)     # [N C H W] -> [N C *]
+            targets = F.one_hot(targets.long(), num_classes)
+            targets = targets.permute(0, 2, 1)          # [N *]  -> [N C *]
 
         if self.mode == MULTILABEL_MODE:
-            y_true = y_true.view(bs, num_classes, -1)
-            y_pred = y_pred.view(bs, num_classes, -1)
+            targets = targets.view(bs, num_classes, -1)
+            probs = probs.view(bs, num_classes, -1)
 
-        scores = soft_dice_score(y_pred, y_true.type_as(y_pred), self.smooth, self.eps, dims=dims)
+        scores = soft_dice_score(probs, targets.type_as(probs),
+                                 self.smooth, self.eps, dims=dims)
 
-        # Dice loss is undefined for non-empty classes
-        # So we zero contribution of channel that does not have true pixels
-        mask = y_true.sum(dims) > 0
+        # zero contribution of channels that does not have true pixels
+        mask = targets.sum(dims) > 0
         scores *= mask.float()
 
+        # Include classes mentioned in `self.classes`
         if self.classes is not None:
             scores = scores[self.classes]
 
         return scores
-
-
-dice_score = DiceMetric(mode="multiclass")
