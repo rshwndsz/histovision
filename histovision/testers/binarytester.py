@@ -41,14 +41,15 @@ class BinaryTester(BaseTester):
 
 def display(images, preds, save=False, save_dir=None, fname=None):
     fig, ax = plt.subplots(2, 1)
+    fig.tight_layout(pad=4.0)
     disp_pred = preds[0].cpu().numpy()
     disp_image = images[0].permute(1, 2, 0).cpu().numpy()
 
     ax[0].imshow(disp_pred)
     ax[1].imshow(disp_image)
 
-    ax[0].set_title("Predictions")
-    ax[1].set_title("Images")
+    ax[0].set_title("Prediction")
+    ax[1].set_title("Image")
 
     if save:
         save_path = Path(save_dir) / fname
