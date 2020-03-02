@@ -4,14 +4,12 @@ import logging
 # PyTorch
 import torch
 import torch.optim as optim
-import torch.nn.functional as F
 import torch.optim.lr_scheduler as lr_scheduler
 # Progress bars
 from tqdm import tqdm
+# To get class, method from string
 import hydra.utils
 # Local
-# Dataset chosen from cfg.provider
-import histovision.datasets
 from histovision.trainers import BaseTrainer
 from histovision.shared.meter import AverageMeter
 
@@ -62,7 +60,7 @@ class BinaryTrainer(BaseTrainer):
 
         # Get loaders for training and validation
         self.dataloaders = {
-            phase: eval(cfg.provider)(
+            phase: hydra.utils.get_class(cfg.provider)(
                 phase=phase,
                 cfg=cfg
             )
@@ -74,7 +72,9 @@ class BinaryTrainer(BaseTrainer):
 
         # Initialize losses & scores
         self.best_loss = float("inf")
-        self.meter = AverageMeter(scores=self.cfg.scores)
+        # TODO Move to config
+        self.meter = AverageMeter(scores=self.cfg.scores, mode="multiclass",
+                                  from_logits=True, include_classes=None)
 
     def forward(self, images, targets):
         """Forward pass

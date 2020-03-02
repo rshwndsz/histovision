@@ -10,9 +10,6 @@ import torch
 import torch.backends.cudnn as cudnn
 # Advanced configurations
 import hydra
-# Local
-import histovision.models
-import histovision.trainers
 
 # Get root logger
 logger = logging.getLogger('root')
@@ -30,7 +27,7 @@ def train(cfg):
     cudnn.benchmark = cfg.training.cudnn_benchmark
 
     # Get trainer from config
-    trainer = eval(cfg.trainer)(cfg)
+    trainer = hydra.utils.get_class(cfg.trainer)(cfg)
 
     # `try-except` to save model before exiting if ^C was pressed
     try:
@@ -107,7 +104,7 @@ def validate_config(cfg):
 
 
 # Helper function to plot scores at the end of training
-# TODO Replace with tensorboard or visdom
+# TODO Fix
 def metric_plot(cfg, scores, name):
     plt.figure(figsize=(15, 5))
     # Plot training scores
