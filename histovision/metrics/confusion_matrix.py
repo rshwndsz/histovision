@@ -1,13 +1,16 @@
 import logging
 import torch
 
-__all__ = ["true_positive", "true_negative", "false_positive", "false_negative",
-           "precision", "accuracy", "recall", "f1"]
+__all__ = ["precision", "accuracy", "recall", "f1"]
 
 logger = logging.getLogger('root')
 
+BINARY_MODE = "binary"
+MULTICLASS_MODE = "multiclass"
+MULTILABEL_MODE = "multilabel"
 
-def true_positive(y_pred, y_true, num_classes=2):
+
+def _true_positive(y_pred, y_true, num_classes=2):
     """Compute number of true positive predictions
 
     Parameters
@@ -31,7 +34,7 @@ def true_positive(y_pred, y_true, num_classes=2):
     return torch.tensor(out)
 
 
-def true_negative(y_pred, y_true, num_classes=2):
+def _true_negative(y_pred, y_true, num_classes=2):
     """Computes number of true negative predictions
 
     Parameters
@@ -55,7 +58,7 @@ def true_negative(y_pred, y_true, num_classes=2):
     return torch.tensor(out)
 
 
-def false_positive(y_pred, y_true, num_classes=2):
+def _false_positive(y_pred, y_true, num_classes=2):
     """Computes number of false positive predictions
 
     Parameters
@@ -79,7 +82,7 @@ def false_positive(y_pred, y_true, num_classes=2):
     return torch.tensor(out)
 
 
-def false_negative(y_pred, y_true, num_classes=2):
+def _false_negative(y_pred, y_true, num_classes=2):
     """Computes number of false negative predictions
 
     Parameters
@@ -103,48 +106,138 @@ def false_negative(y_pred, y_true, num_classes=2):
     return torch.tensor(out)
 
 
-def precision(y_pred, y_true, num_classes=2):
-    """Computes precision score
+def precision(outputs, targets, mode, from_logits, include_classes=None):
+    """Precision
 
     Parameters
     ----------
-    y_pred : torch.Tensor
-        Predictions
-    y_true : torch.Tensor
-        Ground truths
-    num_classes : int
-        Number of classes (including background)
+    outputs : torch.Tensor
+    targets : torch.Tensor
+    from_logits : bool
+    mode : str
+    include_classes : Tuple[int, ...]
 
     Returns
     -------
-    precision : Tuple[torch.Tensor, ...]
-        List of precision scores for each class
+    torch.Tensor
     """
-    tp = true_positive(y_pred, y_true, num_classes).to(torch.float)
-    fp = false_positive(y_pred, y_true, num_classes).to(torch.float)
-    out = tp / (tp + fp)
-    out[torch.isnan(out)] = 0
+    assert outputs.size(0) == targets.size(0), "Batch size must be same"
+    num_classes = outputs.size(1)
+    probs = outputs
+    if from_logits:
+        if mode == MULTICLASS_MODE:
+            probs = outputs.softmax(dim=1)
+        else:
+            probs = outputs.sigmoid()
+    preds = probs.argmax(dim=1)
 
-    return out
+    tp = _true_positive(preds, targets, num_classes)
+    fp = _false_positive(preds, targets, num_classes)
 
+    scores = tp.float() / (tp.float() + fp.float())
+    scores[torch.isnan(scores)] = 0
 
-def accuracy(y_pred, y_true, num_classes=2):
-    tp = true_positive(y_pred, y_true, num_classes)
-    tn = true_negative(y_pred, y_true, num_classes)
-    total_population = y_pred.view(-1).size(0)
-
-    return (tp.float() + tn.float()) / float(total_population)
-
-
-def recall(y_pred, y_true, num_classes=2):
-    tp = true_positive(y_pred, y_true, num_classes)
-    fn = false_negative(y_pred, y_true, num_classes)
-
-    return (tp.float()) / (tp.float() + fn.float())
+    if include_classes is not None:
+        scores = scores[include_classes]
+    return scores
 
 
-def f1(y_pred, y_true, num_classes=2):
-    p = precision(y_pred, y_true, num_classes).float()
-    r = recall(y_pred, y_true, num_classes).float()
+def accuracy(outputs, targets, mode, from_logits, include_classes=None):
+    """Accuracy
 
-    return 2 * (p * r) / (p + r)
+    Parameters
+    ----------
+    outputs : torch.Tensor
+    targets : torch.Tensor
+    mode : str
+    from_logits : bool
+    include_classes : Tuple[int, ...]
+
+    Returns
+    -------
+    torch.Tensor
+    """
+    assert outputs.size(0) == targets.size(0), "Batch size must be same"
+    num_classes = outputs.size(1)
+    probs = outputs
+    if from_logits:
+        if mode == MULTICLASS_MODE:
+            probs = outputs.softmax(dim=1)
+        else:
+            probs = outputs.sigmoid()
+    preds = probs.argmax(dim=1)
+
+    tp = _true_positive(preds, targets, num_classes)
+    tn = _true_negative(preds, targets, num_classes)
+    total_population = outputs.view(-1).size(0)
+
+    scores = (tp.float() + tn.float()) / float(total_population)
+    scores[torch.isnan(scores)] = 0
+
+    if include_classes is not None:
+        scores = scores[include_classes]
+    return scores
+
+
+def recall(outputs, targets, mode, from_logits, include_classes=None):
+    """Recall
+
+    Parameters
+    ----------
+    outputs : torch.Tensor
+    targets : torch.Tensor
+    mode : str
+    from_logits : bool
+    include_classes : Tuple[int, ...]
+
+    Returns
+    -------
+    torch.Tensor
+    """
+    assert outputs.size(0) == targets.size(0), "Batch size must be same"
+    num_classes = outputs.size(1)
+    probs = outputs
+    if from_logits:
+        if mode == MULTICLASS_MODE:
+            probs = outputs.softmax(dim=1)
+        else:
+            probs = outputs.sigmoid()
+    preds = probs.argmax(dim=1)
+
+    tp = _true_positive(preds, targets, num_classes)
+    fn = _false_negative(preds, targets, num_classes)
+
+    scores = (tp.float()) / (tp.float() + fn.float())
+    scores[torch.isnan(scores)] = 0
+
+    if include_classes is not None:
+        scores = scores[include_classes]
+    return scores
+
+
+def f1(outputs, targets, mode, from_logits, include_classes=None):
+    """F1
+
+    Parameters
+    ----------
+    outputs : torch.Tensor
+    targets : torch.Tensor
+    mode : str
+    from_logits : bool
+    include_classes : Tuple[int, ...]
+
+    Returns
+    -------
+    torch.Tensor
+    """
+    p = precision(outputs, targets,
+                  mode=mode, from_logits=from_logits, include_classes=None)
+    r = recall(outputs, targets,
+               mode=mode, from_logits=from_logits, include_classes=None)
+
+    scores = 2 * (p.float() * r.float()) / (p.float() + r.float())
+    scores[torch.isnan(scores)] = 0
+
+    if include_classes is not None:
+        scores = scores[include_classes]
+    return scores
