@@ -53,6 +53,6 @@ def display(images, preds, save=False, save_dir=None, fname=None):
     if save:
         save_path = Path(save_dir) / fname
         save_path.parent.mkdir(parents=True, exist_ok=True)
-        plt.savefig(save_path, format="eps", dpi=1200)
+        plt.savefig(save_path, format="eps")
     else:
         plt.show()
