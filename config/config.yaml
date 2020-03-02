@@ -73,11 +73,11 @@ testing:
 scores:
   # Must have signature fn(outputs, targets, mode, from_logits, include_classes)
   iou: histovision.metrics.iou.iou_score
-  dice: hisovision.metrics.dice.dice_score
+  dice: histovision.metrics.dice.dice_score
   acc: histovision.metrics.confusion_matrix.accuracy
   prec: histovision.metrics.confusion_matrix.precision
-  recall: histoviison.metrics.confustion_matrix.recall
-  f1: histovision.metrics.confustion_matrix.f1
+  recall: histovision.metrics.confusion_matrix.recall
+  f1: histovision.metrics.confusion_matrix.f1
 
 # Data augmentations
 augmentations:
