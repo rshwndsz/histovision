@@ -21,10 +21,10 @@ class BinaryTester(BaseTester):
 
     def forward(self, images):
         images = images.to(self.cfg.device)
-        probs = torch.sigmoid(self.net(images))
-        preds = (probs > 0.5).float()
+        probs = self.net(images).softmax(dim=1)
+        preds = probs.argmax(dim=1)
 
-        return preds
+        return preds                # [N H W] with {0..C-1}
 
     def start(self):
         # Load the net
@@ -42,8 +42,14 @@ class BinaryTester(BaseTester):
 
 def display(images, preds, save=False, save_dir=None, fname=None):
     fig, ax = plt.subplots(2, 1)
-    ax[0].imshow(preds.cpu().numpy().squeeze(), 'gray')
-    ax[1].imshow(images.cpu().numpy().squeeze().transpose(1, 2, 0))
+    disp_pred = preds[0].cpu().numpy()
+    disp_image = images[0].cpu().numpy()
+
+    print(disp_pred.shape, disp_image.shape)
+
+    ax[0].imshow(disp_pred)
+    ax[1].imshow(disp_image)
+
     ax[0].set_title("Predictions")
     ax[1].set_title("Images")
 
