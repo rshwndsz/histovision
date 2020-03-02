@@ -169,7 +169,7 @@ def accuracy(outputs, targets, mode, from_logits, include_classes=None):
 
     tp = _true_positive(preds, targets, num_classes)
     tn = _true_negative(preds, targets, num_classes)
-    total_population = outputs.view(-1).size(0)
+    total_population = targets.view(-1).size(0)
 
     scores = (tp.float() + tn.float()) / float(total_population)
     scores[torch.isnan(scores)] = 0

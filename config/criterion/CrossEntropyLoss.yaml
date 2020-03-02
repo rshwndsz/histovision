@@ -1,6 +1,7 @@
 criterion:
   class: torch.nn.CrossEntropyLoss
   params:
+    # TODO Move from torch.nn to histovision.losses
     weight: NULL
     size_average: NULL
     ignore_index: -100
