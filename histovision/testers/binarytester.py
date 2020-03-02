@@ -5,10 +5,6 @@ from tqdm import tqdm
 import cv2
 from pathlib import Path
 
-# Optimizer chosen from cfg.optimizer
-from torch import optim
-# Dataset chosen from cfg.dataset
-import histovision.datasets
 # Model chosen from cfg.model
 import histovision.models
 
@@ -21,7 +17,7 @@ class BinaryTester(BaseTester):
         self.cfg = cfg
         self.net = hydra.utils.instantiate(self.cfg.model).to(self.cfg.device)
         self.net.eval()
-        self.dataloader = eval(self.cfg.provider)('test', self.cfg)
+        self.dataloader = hydra.utils.get_method(cfg.provider)('test', self.cfg)
 
     def forward(self, images):
         images = images.to(self.cfg.device)
@@ -40,7 +36,7 @@ class BinaryTester(BaseTester):
                 preds = self.forward(images)
                 display(images, preds,
                         save=self.cfg.testing.save_predictions,
-                        save_dir=self.cfg.testing.predictions_dir,
+                        save_dir=self.cfg.testing.testing_dir,
                         fname=f"pred_{i}.png")
 
 
