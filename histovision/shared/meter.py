@@ -30,12 +30,12 @@ class AverageMeter(object):
         self.store = {
             score_name: {
                 phase: [] for phase in self.phases
-            } for score_name in self.scores.keys()
+            } for score_name in ["loss", *self.scores.keys()]
         }
         self.base_threshold = 0.5
         # Storage over 1 single epoch
         self.metrics = {
-            score_name: [] for score_name in self.scores.keys()
+            score_name: [] for score_name in ["loss", *self.scores.keys()]
         }
         self.epoch_start_time = datetime.now()
 
@@ -53,7 +53,7 @@ class AverageMeter(object):
 
         # Initialize metrics
         self.metrics = {
-            score: [] for score in self.scores
+            score: [] for score in ["loss", *self.scores.keys()]
         }
 
         # For later
@@ -76,7 +76,7 @@ class AverageMeter(object):
 
     def on_epoch_close(self):
         # Average over metrics obtained for every batch in the current epoch
-        self.metrics.update({key: torch.mean(self.metrics[key], dim=0)
+        self.metrics.update({key: torch.mean(torch.stack(self.metrics[key], dim=0), dim=0)
                              for key in self.metrics.keys()})
 
         # Compute time taken to complete the epoch
@@ -86,7 +86,7 @@ class AverageMeter(object):
         # Construct string for logging
         metric_string = f""
         for metric_name, metric_value in self.metrics.items():
-            metric_string += f"{metric_name}: {metric_value.numpy():.4f} | "
+            metric_string += f"{metric_name}: {metric_value.numpy()} | "
         metric_string += f"in {delta_t.seconds}s"
 
         # Log metrics & time taken
@@ -95,7 +95,7 @@ class AverageMeter(object):
         # Put metrics for this epoch in long term storage
         for s in self.store.keys():
             try:
-                self.store[s][self.current_phase].extend(self.metrics[s])
+                self.store[s][self.current_phase].append(self.metrics[s])
             except KeyError:
                 logger.warning(f"Key '{s}' not found. Skipping...", exc_info=True)
                 continue
