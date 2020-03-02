@@ -43,7 +43,7 @@ class BinaryTester(BaseTester):
 def display(images, preds, save=False, save_dir=None, fname=None):
     fig, ax = plt.subplots(2, 1)
     disp_pred = preds[0].cpu().numpy()
-    disp_image = images[0].cpu().numpy()
+    disp_image = images[0].permute(1, 2, 0).cpu().numpy()
 
     print(disp_pred.shape, disp_image.shape)
 
