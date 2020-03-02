@@ -2,7 +2,6 @@ import torch
 import matplotlib.pyplot as plt
 import hydra
 from tqdm import tqdm
-import cv2
 from pathlib import Path
 
 # Model chosen from cfg.model
@@ -37,15 +36,13 @@ class BinaryTester(BaseTester):
                 display(images, preds,
                         save=self.cfg.testing.save_predictions,
                         save_dir=self.cfg.testing.testing_dir,
-                        fname=f"pred_{i}.png")
+                        fname=f"pred_{i}.eps")
 
 
 def display(images, preds, save=False, save_dir=None, fname=None):
     fig, ax = plt.subplots(2, 1)
     disp_pred = preds[0].cpu().numpy()
     disp_image = images[0].permute(1, 2, 0).cpu().numpy()
-
-    print(disp_pred.shape, disp_image.shape)
 
     ax[0].imshow(disp_pred)
     ax[1].imshow(disp_image)
@@ -56,6 +53,6 @@ def display(images, preds, save=False, save_dir=None, fname=None):
     if save:
         save_path = Path(save_dir) / fname
         save_path.parent.mkdir(parents=True, exist_ok=True)
-        plt.savefig(save_path, bbox_inches='tight', pad_inches=1)
+        plt.savefig(save_path, format="eps", dpi=1200)
     else:
         plt.show()
