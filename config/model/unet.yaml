@@ -1,4 +1,5 @@
 model:
+  name: unet
   class: segmentation_models_pytorch.Unet
   params:
     encoder_name: "densenet121"

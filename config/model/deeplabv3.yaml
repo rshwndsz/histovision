@@ -1,6 +1,7 @@
 # DeepLabV3
 # Paper: https://arxiv.org/abs/1706.05587
 model:
+  name: deeplabv3
   class: segmentation_models_pytorch.DeepLabV3
   params:
     encoder_name: "densenet121"
@@ -9,7 +10,7 @@ model:
     decoder_channels: 256
     psp_dropout: 0.2
     in_channels: 3
-    classes: 1
+    classes: 2
     activation: NULL
     upsampling: 8
     aux_params: NULL

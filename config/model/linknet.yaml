@@ -1,6 +1,7 @@
 # LinkNet
 # Paper: https://arxiv.org/abs/1707.03718
 model:
+  name: linknet
   class: segmentation_models_pytorch.Linknet
   params:
     encoder_name: 'resnet101'

@@ -1,6 +1,7 @@
 # Feature pyramid networks
 # Paper: https://arxiv.org/abs/1612.03144
 model:
+  name: fpn
   class: segmentation_models_pytorch.FPN
   params:
     encoder_name: "resnet34"
@@ -11,7 +12,7 @@ model:
     decoder_merge_policy: "add"
     decoder_dropout: 0.2
     in_channels: 3
-    classes: 1
+    classes: 2
     activation: NULL
     upsampling: 4
     aux_params: NULL

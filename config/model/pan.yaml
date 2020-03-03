@@ -1,6 +1,7 @@
 # Pyramid Attention Network
 # Paper: https://arxiv.org/abs/1805.10180
 model:
+  name: pan
   class: segmentation_models_pytorch.PAN
   params:
     encoder_name: "resnet50"
