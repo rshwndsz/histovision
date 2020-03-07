@@ -1,4 +1,5 @@
 criterion:
+  name: CrossEntropy
   class: torch.nn.CrossEntropyLoss
   params:
     # TODO Move from torch.nn to histovision.losses

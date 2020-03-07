@@ -1,4 +1,5 @@
 criterion:
+  name: Jaccard
   class: histovision.losses.jaccardloss.JaccardLoss
   params:
     log_loss: True

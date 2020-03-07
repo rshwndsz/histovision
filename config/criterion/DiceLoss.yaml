@@ -1,4 +1,5 @@
 criterion:
+  name: Dice
   class: histovision.losses.diceloss.DiceLoss
   params:
     mode: "binary"

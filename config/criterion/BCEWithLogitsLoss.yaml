@@ -1,4 +1,5 @@
 criterion:
+  name: BCEWithLogits
   class: torch.nn.BCEWithLogitsLoss
   params:
     weight: NULL
