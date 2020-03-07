@@ -1,5 +1,5 @@
 dataset:
-  name: MoNuSeg_nitk
+  name: liver_nitk 
   root: ../../../histovision/data/liver/
   image_dir: "data"
   mask_dir: "bin_l"
