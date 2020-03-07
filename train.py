@@ -72,16 +72,16 @@ def validate_config(cfg):
         raise NotADirectoryError(f"{cfg.dataset.root} is not a directory or it doesn't exist.")
 
     # dataset.root/imgs/[train, val]/[imgs, masks]
-    _path_to_imgs = Path(cfg.dataset.root) / "train" / "imgs"
+    _path_to_imgs = Path(cfg.dataset.root) / "train" / cfg.dataset.image_dir
     if not Path(_path_to_imgs).is_dir():
         raise FileNotFoundError(f"{_path_to_imgs} doesn't exist.")
-    _path_to_imgs = Path(cfg.dataset.root) / "val" / "imgs"
+    _path_to_imgs = Path(cfg.dataset.root) / "val" / cfg.dataset.image_dir
     if not Path(_path_to_imgs).is_dir():
         raise FileNotFoundError(f"{_path_to_imgs} doesn't exist.")
-    _path_to_imgs = Path(cfg.dataset.root) / "train" / "masks"
+    _path_to_imgs = Path(cfg.dataset.root) / "train" / cfg.dataset.mask_dir
     if not Path(_path_to_imgs).is_dir():
         raise FileNotFoundError(f"{_path_to_imgs} doesn't exist.")
-    _path_to_imgs = Path(cfg.dataset.root) / "val" / "masks"
+    _path_to_imgs = Path(cfg.dataset.root) / "val" / cfg.dataset.mask_dir
     if not Path(_path_to_imgs).is_dir():
         raise FileNotFoundError(f"{_path_to_imgs} doesn't exist.")
 
