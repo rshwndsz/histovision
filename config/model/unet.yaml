@@ -16,7 +16,12 @@ model:
     # One of [True, False, 'inplace']
     decoder_use_batchnorm: True
     # List of numbers of `Conv2D` layer filters in decoder blocks
-    decoder_channels: [256, 128, 64, 32, 16]
+#    decoder_channels:
+#      - 256
+#      - 128
+#      - 64
+#      - 32
+#      - 16
     # attention module used in decoder of the model
     # One of [NULL => None, scse]
     decoder_attention_type: NULL

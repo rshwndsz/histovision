@@ -10,7 +10,7 @@ defaults:
   # Custom output for --help
   - hydra/help: custom
     # Loss function
-  - criterion: MixedLoss
+  - criterion: CrossEntropyLoss
   - scheduler: ReduceLROnPlateau
 
 dataset: ???  # Required, Specify at runtime
