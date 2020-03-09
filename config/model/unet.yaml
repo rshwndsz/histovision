@@ -2,13 +2,30 @@ model:
   name: unet
   class: segmentation_models_pytorch.Unet
   params:
-    encoder_name: "densenet121"
+    # Name of classification model (without last dense layers) used as feature extractor to build segmentation model
+    encoder_name: densenet121
+    # Number of stages used in decoder, larger depth - more features are generated.
+    # e.g. for depth=3 encoder will generate list of features with following spatial shapes
+    # [(H,W), (H/2, W/2), (H/4, W/4), (H/8, W/8)], so in general the deepest feature will have
+    # spatial resolution (H/(2^depth), W/(2^depth)]
     encoder_depth: 5
-    encoder_weights: "imagenet"
+    # One of [NULL => None or (random initialization), imagenet => (pre-training on ImageNet)]
+    encoder_weights: imagenet
+    # If True, `BatchNormalisation` layer between `Conv2D` and `Activation` layers is used.
+    # If 'inplace' InplaceABN will be used, allows to decrease memory consumption.
+    # One of [True, False, 'inplace']
     decoder_use_batchnorm: True
-    # decoder_channels: [256, 128, 64, 32, 16]
+    # List of numbers of `Conv2D` layer filters in decoder blocks
+    decoder_channels: [256, 128, 64, 32, 16]
+    # attention module used in decoder of the model
+    # One of [NULL => None, scse]
     decoder_attention_type: NULL
+    # activation function used in `.predict(x)` method for inference
+    # One of [sigmoid, softmax2d, callable, None]
     # softmax2d => nn.Softmax(dim=1, **params)
     activation: NULL
+    # Number of input channels for model, default is 3
     in_channels: 3
-    classes: 1
+    # Number of classes for output
+    # output shape => [N C H W]
+    classes: 2

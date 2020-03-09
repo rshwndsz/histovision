@@ -4,32 +4,33 @@ model:
   name: pspnet
   class: segmentation_models_pytorch.PSPNet
   params:
-    encoder_name: "resnet101"
-    # number of stages used in decoder, larger depth - more features are generated.
+    # Name of classification model (without last dense layers) used as feature extractor to build segmentation model.
+    encoder_name: resnet101
+    # Number of stages used in decoder, larger depth - more features are generated.
     # e.g. for depth=3 encoder will generate list of features with following spatial shapes
     # [(H,W), (H/2, W/2), (H/4, W/4), (H/8, W/8)], so in general the deepest feature will have
     # spatial resolution (H/(2^depth), W/(2^depth)]
     encoder_depth: 4
-    # One of ``None`` (random initialization), ``imagenet`` (pre-training on ImageNet).
+    # One of [NULL => None (random initialization), imagenet => (pre-training on ImageNet)]
     encoder_weights: NULL
     # Number of filters in PSP block.
     psp_out_channels: 512
-    # if ``True``, ``BatchNormalisation`` layer between ``Conv2D`` and ``Activation`` layers is used.
-    # If 'inplace' InplaceABN will be used, allows to decrease memory consumption.
+    # If True, `BatchNormalisation` layer between `Conv2D` and `Activation` layers is used.
+    # If 'inplace' `InplaceABN` will be used, allows to decrease memory consumption.
     # One of [True, False, 'inplace']
     psp_use_batchnorm: True
-    # spatial dropout rate between 0 and 1
+    # Spatial dropout rate between 0 and 1
     psp_dropout: 0.2
-    # number of input channels for model, default is 3.
+    # Number of input channels for model, default is 3.
     in_channels: 3
-    # a number of classes for output
-    # (output shape - ``(N, C, H, W)``).
+    # Number of classes for output
+    # output shape => [N C H W]
     classes: 2
-    # activation function used in ``.predict(x)`` method for inference.
-    # One of [``sigmoid``, ``softmax``, callable, None]
+    # activation function used in `.predict(x)` method for inference.
+    # One of [sigmoid, softmax, callable, None]
     activation: NULL
-    # optional, final upsampling factor
-    # (default is 8 for depth=3 to preserve input -> output spatial shape identity)
+    # Optional, final upsampling factor
+    # default => 8 (for depth=3 to preserve input -> output spatial shape identity)
     upsampling: 16
     # if specified model will have additional classification auxiliary output
     # build on top of encoder, supported params:
