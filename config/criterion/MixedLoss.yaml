@@ -1,6 +1,0 @@
-criterion:
-    name: Mixed
-    class: histovision.losses.MixedLoss
-    params:
-        alpha: 9.0
-        gamma: 4.0
