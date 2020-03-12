@@ -1,9 +1,9 @@
 criterion:
-  name: CrossEntropy
-  class: torch.nn.CrossEntropyLoss
+  name: cross_entropy
+  class: histovision.losses.cross_entropy.CrossEntropyLoss
   params:
-    # TODO Move from torch.nn to histovision.losses
     weight: NULL
+    # Deprecated in favor of reduction
     size_average: NULL
     ignore_index: -100
     reduce: NULL

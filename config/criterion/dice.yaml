@@ -1,6 +1,6 @@
 criterion:
-  name: Dice
-  class: histovision.losses.diceloss.DiceLoss
+  name: dice
+  class: histovision.losses.dice.DiceLoss
   params:
     mode: "binary"
     include_classes: NULL

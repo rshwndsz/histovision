@@ -1,6 +1,6 @@
 criterion:
-  name: Jaccard
-  class: histovision.losses.jaccardloss.JaccardLoss
+  name: jaccard
+  class: histovision.losses.jaccard.JaccardLoss
   params:
     log_loss: True
     mode: "binary"

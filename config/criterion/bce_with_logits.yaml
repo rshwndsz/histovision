@@ -1,0 +1,10 @@
+criterion:
+  name: bce_with_logits
+  class: histovision.losses.bce_with_logits.BCEWithLogitsLoss
+  params:
+    weight: NULL
+    # deprecated in favor of reduction
+    size_average: NULL
+    reduce: NULL
+    reduction: mean
+    pos_weight: NULL

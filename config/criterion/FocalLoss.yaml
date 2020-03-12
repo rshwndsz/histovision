@@ -1,5 +1,0 @@
-criterion:
-  name: Focal
-  class: histovision.losses.focalloss.FocalLoss
-  params:
-    gamma: 4.0

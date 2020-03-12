@@ -46,7 +46,6 @@ def soft_dice_score(y_pred, y_true, smooth=0, eps=1e-7, dims=None):
 
 class DiceLoss(nn.Module):
     """Dice Loss for semgmentation & classification"""
-
     def __init__(self, mode, include_classes=None, log_loss=False, from_logits=True, smooth=0, eps=1e-7):
         """Initialize
 
