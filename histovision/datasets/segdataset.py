@@ -91,7 +91,7 @@ class SegmentationDataset(Dataset):
 
         # Add a channel dimension (C in [N C H W] in PyTorch)
         # CrossEntropyLoss takes 3D vectors
-        if self.cfg.dataset.num_classes == 2 and self.cfg.criterion['class'] != "torch.nn.CrossEntropyLoss":
+        if self.cfg.dataset.num_classes == 2 and self.cfg.criterion.name != "cross_entropy":
             mask = torch.unsqueeze(mask, dim=0)  # [H, W] => [H, C, W]
 
         # Return tuple of tensors

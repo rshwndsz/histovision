@@ -95,7 +95,7 @@ class BinaryTrainer(BaseTrainer):
             in the last layer
         """
         images = images.to(self.cfg.device)
-        if self.cfg.criterion['class'] == "torch.nn.CrossEntropyLoss":
+        if self.cfg.criterion['name'] == "cross_entropy":
             targets = targets.long()
         masks = targets.to(self.cfg.device)
         outputs = self.net(images)
