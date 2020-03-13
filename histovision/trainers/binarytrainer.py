@@ -72,7 +72,6 @@ class BinaryTrainer(BaseTrainer):
 
         # Initialize losses & scores
         self.best_loss = float("inf")
-        # TODO Move to config
         self.meter = AverageMeter(scores=self.cfg.scores, mode="multiclass",
                                   from_logits=True, include_classes=None)
 
@@ -163,6 +162,7 @@ class BinaryTrainer(BaseTrainer):
     def validate(self, epoch):
         # Go through 1 validation epoch & get validation loss
         val_loss = self.iterate(epoch, "val")
+        # TODO Display validation predictions One of ("every", "best", "every n val")
         # Step the scheduler based on validation loss
         self.scheduler.step(val_loss)
         # Save model if val loss is lesser than anything seen before

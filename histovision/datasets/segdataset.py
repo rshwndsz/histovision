@@ -54,9 +54,10 @@ class SegmentationDataset(Dataset):
         else:
             image = cv2.imread(str(image_path))
         # Check if image has been read properly
-        if image.size == 0:
+        if image.size == 0 or image is None:
             raise IOError(f"Unable to load image: {image_path}")
 
+        # Return only images for test phase
         if self.phase == 'test':
             augmented = self.transforms['common'](image=image)
             new_image = self.transforms['img_only'](image=augmented['image'])
@@ -64,13 +65,12 @@ class SegmentationDataset(Dataset):
             image = aug_tensors['image']
             return image
 
-        # <<< Note:
-        # Mask is supposed to have the same filename as image
+        # <<< Note: Mask is supposed to have the same filename as image
         mask_path = Path(self.cfg.dataset.root) / self.phase / self.cfg.dataset.mask_dir / image_path.name
         mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
 
         # Check if mask has been read properly
-        if mask.size == 0:
+        if mask.size == 0 or mask is None:
             raise IOError(f"Unable to load mask: {mask_path}")
 
         # Map pixel intensities to classes
@@ -78,7 +78,8 @@ class SegmentationDataset(Dataset):
             mask = np.where(mask == int(intensity), float(kclass), mask)
         mask = mask.astype(np.float32)
 
-        assert mask.max() <= self.cfg.dataset.num_classes
+        # Basic check to see if values in mask are within [0, C-1] or C==1 and mask.unique == {0, 1}
+        assert mask.max() < self.cfg.dataset.num_classes
         assert mask.min() >= 0
 
         # Augment masks and images
@@ -89,8 +90,8 @@ class SegmentationDataset(Dataset):
         image = aug_tensors['image']
         mask = aug_tensors['mask']
 
-        # Add a channel dimension (C in [N C H W] in PyTorch)
-        # CrossEntropyLoss takes 3D vectors
+        # Add a channel dimension -> C in [N C H W]
+        # <<<Note: CrossEntropyLoss takes 3D vectors
         if self.cfg.dataset.num_classes == 2 and self.cfg.criterion.name != "cross_entropy":
             mask = torch.unsqueeze(mask, dim=0)  # [H, W] => [H, C, W]
 

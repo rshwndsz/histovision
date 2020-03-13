@@ -59,7 +59,7 @@ def train(cfg):
         # Exit
         sys.exit(0)
 
-    # TODO Fix
+    # TODO Fix metric and loss plots for multiclass
     # for metric_name, metric_values in trainer.meter.store.items():
     #     metric_plot(cfg, metric_values, metric_name)
 
@@ -96,7 +96,6 @@ def validate_config(cfg):
     # device
     if torch.cuda.is_available() and cfg.device == 'cpu':
         logger.warning("Using device: 'cpu' when device: 'cuda' is available")
-
     elif not torch.cuda.is_available() and cfg.device != 'cpu':
         logger.warning("Setting device to 'cpu' as device: 'cuda' is not available")
         cfg.device = 'cpu'
@@ -105,7 +104,6 @@ def validate_config(cfg):
 
 
 # Helper function to plot scores at the end of training
-# TODO Fix for multiclass
 def metric_plot(cfg, scores, name):
     plt.figure(figsize=(15, 5))
     # Plot training scores
