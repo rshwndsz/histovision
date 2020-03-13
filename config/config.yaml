@@ -108,8 +108,8 @@ augmentations:
 
     img_only:
       Normalize:
-        mean: [0.0, 0.0, 0.0]
-        std: [1.0, 1.0, 1.0]
+        mean: ${dataset.stats.mean}
+        std: ${dataset.stats.std}
         always_apply: true
 
     mask_only:
@@ -131,8 +131,8 @@ augmentations:
 
     img_only:
       Normalize:
-        mean: [0.0, 0.0, 0.0]
-        std: [1.0, 1.0, 1.0]
+        mean: ${dataset.stats.mean}
+        std: ${dataset.stats.std}
         always_apply: true
 
     mask_only:
@@ -151,8 +151,8 @@ augmentations:
 
     img_only:
       Normalize:
-        mean: [0.0, 0.0, 0.0]
-        std: [1.0, 1.0, 1.0]
+        mean: ${dataset.stats.mean}
+        std: ${dataset.stats.std}
         always_apply: true
 
     mask_only:
