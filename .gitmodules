@@ -1,0 +1,3 @@
+[submodule "histovision/models/hover-net"]
+	path = histovision/models/hover-net
+	url = https://github.com/rshwndsz/hover-net
